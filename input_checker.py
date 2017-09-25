@@ -19,7 +19,7 @@ def input_checker(input_dir_file):
             else:
                 if input_dir_file not in paths:
                     paths.append(input_dir_file)
-                input_files.append(dir_or_file)
+            input_files.append(dir_or_file)
     else:
         input_files = [input_dir_file]#[input_dir_file.split("/")[-1]]
         paths = ["/".join(input_dir_file.split("/")[:-1])+"/"]
