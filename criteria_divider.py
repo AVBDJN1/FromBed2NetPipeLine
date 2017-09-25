@@ -12,7 +12,7 @@ def score_bed_selector(input_file, col_of_threshold, threshold): #, output):
     HPs = open(input_file, "r")
     #name = output 
     name = os.path.splitext(os.path.basename(input_file))[0]#.split("_")[1]
-    output = "{}_{}-up.txt".format(name, threshold)
+    output = "{}_{}-up.bed".format(name, threshold)
     selected_HPs = open(output, "w")
     for HP in HPs:
         if len(HP.split("\t")) > 2 and float(HP.split("\t")[int(col_of_threshold)-1]) >= float(threshold):
@@ -29,7 +29,7 @@ def criteria_divider(data_file_or_dir, ncol_to_divide):
             line_columns = line.split("\t")
             if line_columns[int(ncol_to_divide)-1] != criteria:
                 criteria = line_columns[int(ncol_to_divide)-1]
-                output_files = open(output_folder+"/"+criteria+".txt", "w")
+                output_files = open(output_folder+"/"+criteria+".bed", "w")
                 output_files.write(line)
             else:
                 output_files.write(line)

@@ -34,15 +34,17 @@ def annotation(input_dir_file, annotation_file, output_folder):
 def tsver(input_dir_file):
     contador = 1
     paths, input_files = input_checker(input_dir_file)
-    if os.path.isfile(input_files[0]): ## To be REPAIRED if output folder is given.. it return errors cause thre is no element [0]
+    
+    if os.path.isfile(input_files[0]):
        print "Single annotation mode with {}".format(os.path.basename(input_files[0]))
        path = paths[0] 
-       file_handle = open(input_files[0],'r')
+       annotation_handle = open(input_files[0],'r')
     else:
         for path in paths:
             if re.match('.*annotated/*', path) is not None:
                 input_files = os.listdir(path)
                 break
+                
     to_process = len(input_files)
     os.system("mkdir "+path+"/../tsvs")
     if len(input_files) <= 1:
@@ -56,20 +58,22 @@ def tsver(input_dir_file):
                 string = "\t".join(bytabs[0:-1])+"\t"+annot_str
                 tsv_file.write(string)
         tsv_file.close()
+        annotation_handle.close()
     else:
         for annotated in input_files:
             print "Transforming {} to tsv\t{} of {}".format(annotated, contador, to_process)
             contador += 1
             tsv_file_name = os.path.splitext(os.path.basename(annotated))[0]
             tsv_file = open(path+"../tsvs/"+tsv_file_name+".tsv", "w")
-            file_handle = open(path+annotated,'r')
-            for line in file_handle:
+            annotation_handle = open(path+annotated,'r')
+            for line in annotation_handle:
                 bytabs = line.split("\t")
                 if len(bytabs) >= 14:
                     annot_str = re.sub('\=|\;|\:|\,', '\t', bytabs[-1])
                     string = "\t".join(bytabs[0:-1])+"\t"+annot_str
                     tsv_file.write(string)
         tsv_file.close()
+        annotation_handle.close()
     os.system("ls -1 "+path+"/../tsvs/ | wc -l")
     os.system("find "+path+"/../tsvs/ -name '*.tsv' | xargs wc -l")
     print "---Done gene tsv outlay---\n\
