@@ -34,12 +34,11 @@ def genes_loci_score_writer(path_to_tsv, summary_handle):
             summary_handle.write("{}\n{}\n\n".format(locus_score, "\n".join(loci_genes[locus_score])))
 
 def GO_analysis_writter(go_results_path, summary_handle):
-    #HPname = os.path.splitext(os.path.basename(go_results_path))[0] 
+    
     go_result_matches = (go_result for go_result in os.listdir(go_results_path) if re.search("[0-9]$", go_result) is not None)
      
     for go_result in go_result_matches:
-        #summary_handle = open("{}_sum-lg.txt".format(HPname), "a") # THIS MIGHT COULD BE OPENED OUT f(x)
-        
+                
         if go_result[0:2] == "MF":
             go_result_path = go_results_path+go_result#input_folder+go_results_folders+"/results/"+go_results[0]+"/"+i
             go_result_read = open(go_result_path, "r").read()
