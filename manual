@@ -1,0 +1,25 @@
+script.py [mode]
+
+mode: 	--help to display this
+
+	-annotation <input dir/file> <annotation source> <output_folder>
+
+		<input dir/file> can be either a bed file or a directory 
+		with bed files
+
+		<annotation source> can be any valid file used by bedtools 
+		or you can download it now to download, you have four options 
+		by now: gcode_hg19 gcode_hg20 ncbi_hg19 ncbi_hg20 just write 
+		i.e -download:gcode_hg19
+
+		<output_folder> is the name of a dir where the results will be dumped
+
+	-tsver 	<input dir/file>
+
+		<input dir/file> can be either a bed file or a directory 
+		with annotated files from annotation mode to be transformed
+		into a tsv to be easier to scan visually
+
+
+
+
