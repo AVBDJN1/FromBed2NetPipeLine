@@ -1,6 +1,13 @@
 *.pyc
+<<<<<<< HEAD
 *.gz
 *.gff3
 *.map
 
+=======
+*.gff3
+*.map
+*.gz
+*.tar
+>>>>>>> angrykoala-master
 

@@ -85,5 +85,5 @@ for index in xrange(len(tsv_list)):
         summary_handle.write("{} has no genes mapped to GO terms\n".format(os.path.splitext(tsv_list[index])[0]))
         summary_handle.close()
 
-os.mkdir("{}../2-summed_up_annot/".format(input_folder))
-os.system("mv *_summary.txt {}../summed_up_annotation/".format(input_folder))
+os.mkdir("{}../summed_up_annot/".format(input_folder))
+os.system("mv *_summary.txt {}../summed_up_annot/".format(input_folder))
