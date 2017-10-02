@@ -1,2 +1,4 @@
-.*.pyc
-
+*.pyc
+*.gff3
+*.map
+*.gz
