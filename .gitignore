@@ -2,3 +2,5 @@
 *.gff3
 *.map
 *.gz
+*.tar
+
