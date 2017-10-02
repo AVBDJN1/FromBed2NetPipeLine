@@ -59,7 +59,7 @@ python ../FromBed2Net.py -tsver ncbi_hg19_run/annotated/annoted_Feature_N1.bed
 
 **GENE EXTRACTION** works like TSVER but extracting genes and its score
 
-* `python ../FromBed2Net.py -extract_genes ncbi_hg19_run/``
+* `python ../FromBed2Net.py -extract_genes ncbi_hg19_run/`
 * `python ../FromBed2Net.py -extract_genes ncbi_hg19_run/tsvs/`
 * `python ../FromBed2Net.py -extract_genes ncbi_hg19_run/tsvs/annoted_Feature_N1.tsv`
 
@@ -72,18 +72,21 @@ python ../FromBed2Net.py -full initial_file_4testing.bed 5-3-4 ncbi_hg19.gff3 nc
 ## ENRICHMENT
 
 This following script that I am going to explain is based on TopGO, and performs an enrichment analysis.
-You can perform this by having a mapping file gene-to-goID, and genes lists as query. In case that you do not have a mapping file, the script can download for you geneID2GO map of ncbi (ftp://ftp.ncbi.nih.gov/gene/DATA/).
+You can perform this by having a mapping file gene-to-goID, and genes lists as query. In case that you do not have a mapping file, the script can download for you geneID2GO map of ncbi (<ftp://ftp.ncbi.nih.gov/gene/DATA/>).
 This file contains the mapping of several taxons, by default it is going to retrieve the mappings of the tax 9606, homo sapiens, however you can retrieve the tax id that you want. We run this analisys using Rscript (what is between <> is optional):
 ```
 Rscript Enrichment/U-TopGOFullBasic.r gene_lists/ gene2go:download/gene2go/.*.map <taxid> <mode(MF-CC-BP)> output
 ```
 
 ### Download mode
+```
 Rscript ../TopGOer.r ncbi19_run/genes_lists/ gene2go:download 9606 enrich
+```
 
 ### Give a map yourself
+```
 Rscript ../TopGOer.r ncbi19_run/genes_lists/ 9606_geneID2GO.map CC-BP enrich
-
+```
 
 ## HOTNET2
 
