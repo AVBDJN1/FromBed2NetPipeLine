@@ -42,30 +42,34 @@ works also with a given query file downloading a gff3 or providing it
 python ../FromBed2Net.py -annotation initial_file_4testing_3-up_divided/Feature_N1.bed ncbi_hg19.gff3 ncbi_hg19_run
 ```
 
-**TSVER** Middle transformation for an easier annotation extraction handling
+## TSVER
+Middle transformation for an easier annotation extraction handling
 
-works with original output folder or any folder with a folder called `.*annotated/ inside
-python ../FromBed2Net.py -tsver ncbi_hg19_run/`
+works with original output folder or any folder with a folder inside called ".*annotated/"
+
+```python ../FromBed2Net.py -tsver ncbi_hg19_run/```
 
 works with first forced output folder or any folder
 ```
 python ../FromBed2Net.py -tsver ncbi_hg19_run/annotated/
 ```
-
 works with any annotated file
 ```
 python ../FromBed2Net.py -tsver ncbi_hg19_run/annotated/annoted_Feature_N1.bed
 ```
 
-**GENE EXTRACTION** works like TSVER but extracting genes and its score
+## GENE EXTRACTION
+takes the input like TSVER but this script extracts the genes and the score related to a feature
 
-* `python ../FromBed2Net.py -extract_genes ncbi_hg19_run/`
-* `python ../FromBed2Net.py -extract_genes ncbi_hg19_run/tsvs/`
-* `python ../FromBed2Net.py -extract_genes ncbi_hg19_run/tsvs/annoted_Feature_N1.tsv`
+```
+python ../FromBed2Net.py -extract_genes ncbi_hg19_run/
+python ../FromBed2Net.py -extract_genes ncbi_hg19_run/tsvs/
+python ../FromBed2Net.py -extract_genes ncbi_hg19_run/tsvs/annoted_Feature_N1.tsv
+```
 
-### FULL ANNOTATION MODE
+## **FULL ANNOTATION MODE**
 
-All the previous steps can be done with a single:
+All the previous steps can be done with a single command:
 ```
 python ../FromBed2Net.py -full initial_file_4testing.bed 5-3-4 ncbi_hg19.gff3 ncbi19_run/
 ```
@@ -74,6 +78,7 @@ python ../FromBed2Net.py -full initial_file_4testing.bed 5-3-4 ncbi_hg19.gff3 nc
 This following script that I am going to explain is based on TopGO, and performs an enrichment analysis.
 You can perform this by having a mapping file gene-to-goID, and genes lists as query. In case that you do not have a mapping file, the script can download for you geneID2GO map of ncbi (<ftp://ftp.ncbi.nih.gov/gene/DATA/>).
 This file contains the mapping of several taxons, by default it is going to retrieve the mappings of the tax 9606, homo sapiens, however you can retrieve the tax id that you want. We run this analisys using Rscript (what is between <> is optional):
+
 ```
 Rscript Enrichment/U-TopGOFullBasic.r gene_lists/ gene2go:download/gene2go/.*.map <taxid> <mode(MF-CC-BP)> output
 ```
