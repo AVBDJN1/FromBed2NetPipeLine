@@ -53,7 +53,7 @@ def tsver(input_dir_file):
         tsv_file = open(path+"../tsvs/"+tsv_file_name+".tsv", "w")
         for line in file_handle:
             bytabs = line.split("\t")
-            if len(bytabs) >= 14:
+            if len(bytabs) >= 3:
                 annot_str = re.sub('\=|\;|\:|\,', '\t', bytabs[-1])
                 string = "\t".join(bytabs[0:-1])+"\t"+annot_str
                 tsv_file.write(string)
@@ -68,7 +68,7 @@ def tsver(input_dir_file):
             annotation_handle = open(path+annotated,'r')
             for line in annotation_handle:
                 bytabs = line.split("\t")
-                if len(bytabs) >= 14:
+                if len(bytabs) >= 3:
                     annot_str = re.sub('\=|\;|\:|\,', '\t', bytabs[-1])
                     string = "\t".join(bytabs[0:-1])+"\t"+annot_str
                     tsv_file.write(string)
