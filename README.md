@@ -1,4 +1,4 @@
-# Project Features-Regions-Explorer - by EidrianGM Adrian Garcia Moreno©
+# Project Features-Regions-Explorer - by EidrianGM Adrian Garcia Moreno
 (all the code given as an example can be run by the folder example_data)
 Imagine that we have a bed file where a genomic regions is associated to a certain feature or whatever. This asociation can have an score.
 We might like to do the analysis for each feature, or even, for each feautre whose genomic region has a score above a certain threshold.
