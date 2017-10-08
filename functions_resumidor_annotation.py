@@ -10,7 +10,7 @@ import sys
 
 def genes_loci_score_writer(path_to_tsv, summary_handle):    
     
-    tsv_handle = open(path_to_tsv, "r")#input_folder+"tsvs/"+tsv_list[index], "r")
+    tsv_handle = open(path_to_tsv, "r")
     geneID_match = re.compile(r"\tgene\t[0-9]+.*ID\t([0-9]+|ENSG[0-9]+)\.*[0-9]*\t")
     
     loci_genes = {}
@@ -26,7 +26,7 @@ def genes_loci_score_writer(path_to_tsv, summary_handle):
             
     tsv_handle.close()
     
-    summary_handle.write(">>{}\n".format(HPname))
+    summary_handle.write("{}\n".format(HPname))
     if loci_genes == {}:
         summary_handle.write("Not a single gene was found so that means that,\n".format(HPname))
     else:
