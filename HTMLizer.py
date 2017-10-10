@@ -71,7 +71,7 @@ os.mkdir("{}../htmls".format(input_folder_or_file))
 if os.path.isfile(input_folder_or_file):
     summed_up_results = [sys.argv[1]]
 else:
-    summed_up_results = [sys.argv[1]+summed_up_result for  summed_up_result in os.listdir(sys.argv[1])] # FromBed2NetPipeLine/mygoresults.txt
+    summed_up_results = [sys.argv[1]+summed_up_result for summed_up_result in os.listdir(sys.argv[1])] # FromBed2NetPipeLine/mygoresults.txt
 
 files_toprocess = len(summed_up_results)
 counter = 1

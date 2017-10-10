@@ -11,3 +11,8 @@
 *.tar
 >>>>>>> angrykoala-master
 
+*.tsv
+*.map
+*.txt
+
+
