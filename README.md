@@ -83,19 +83,19 @@ This file contains the mapping of several taxons, by default it is going to retr
 Rscript ../TopGOer.r annotation_results/genes_lists/ gene2go:download/gene2go/.*.map <-taxid="9060" taxid> <-mode="MF-CC-BP" "BP-CC"> <-pval_thres=0.05 "0.03"> output
 ```
 
-Now the optional arguments must have a previus flag to be identified, as I hope that you understands, each of one has a default value (human tax, all GO categories, pval_threshold 0.05. 
+Now the optional arguments must have a previus flag to be identified, as I hope that you understands, each of one has a default value (human tax, all GO categories, pval_threshold 0.05) which will be their value in case that they are not explicitly given. 
 
 ### Download mode
 ```
 Rscript ../TopGOer.r annotation_results/genes_lists/ gene2go:download <-taxid="9060" taxid> <-mode="MF-CC-BP" "BP-CC"> <-pval_thres=0.05 "0.03"> output
 ```
-### Extract a new tax of your gene2go file previously downloaded
+### Extract a new tax of your gene2go file previously downloaded and only two categories
 ```
-Rscript ../TopGOer.r annotation_results/genes_lists/ gene2go <-taxid="9060" taxid> <-mode="MF-CC-BP" "BP-CC"> <-pval_thres=0.05 "0.03"> output
+Rscript ../TopGOer.r annotation_results/genes_lists/ gene2go -taxid 9596 -mode CC-BP -pval_thres 0.03 enrich
 ```
-### Give a map yourself
+### Give a map yourself (it would make no sense determine the taxid here) and only two categories and 0.04 threshold
 ```
-Rscript ../TopGOer.r annotation_results/genes_lists/ 9606_geneID2GO.map CC-BP enrich
+Rscript ../TopGOer.r annotation_results/genes_lists/ 9606_geneID2GO.map -mode CC-MF -pval_thres 0.04 enrich
 ```
 
 ## HOTNET2
