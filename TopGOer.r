@@ -54,7 +54,7 @@ mapper <- function(taxid){
   return(paste(taxid, "_geneID2GO.map", sep = ""))
 }
 
-FullBasicTopGOAnalysis <- function(input, map, mode = c("MF", "CC", "BP"), output){
+FullBasicTopGOAnalysis <- function(input, map, mode = c("MF", "CC", "BP"), output, pval_thres){
   if (dir.exists(input)){
     files <- list.files(path = input)
   }else{files <- c(input)}
@@ -85,10 +85,12 @@ FullBasicTopGOAnalysis <- function(input, map, mode = c("MF", "CC", "BP"), outpu
         write(paste(name, " none genes found", as.character(problematic_HP), sep = ""), file = "warnings_enrichment.txt", append = TRUE, sep = "\n")
         problematic_HP <- problematic_HP + 1
         next}
-      query_score_table <- read.table(file = paste(input,"/",file, sep = ""), header = F, comment.char="", sep=" ", quote="")
+      query_score_table <- read.table(text = gsub("\t", " ", readLines(paste(input,"/",file, sep = ""))), header = F, comment.char="", sep=" ", quote="")
+      #query_score_table <- read.table(file = paste(input,"/",file, sep = ""), header = F, comment.char="", sep=c(" ","\t"), quote="")
       query <- query_score_table[,1]  
     }else{files <- c(input)
-    query_score_table <- read.table(file = input, header = F, comment.char="", sep=" ", quote="")
+    query_score_table <- read.table(text = gsub("\t", " ", readLines(input)), header = F, comment.char="", sep=" ", quote="")
+    #query_score_table <- read.table(file = input, header = F, comment.char="", sep=" ", quote="")
     query <- query_score_table[,1]
     linescheck <- readLines(input)
     if(identical(linescheck,character(0))){
@@ -110,7 +112,8 @@ FullBasicTopGOAnalysis <- function(input, map, mode = c("MF", "CC", "BP"), outpu
     print("Generating Mollecular Function Results")
     MF_GOobject <- new("topGOdata", ontology = "MF", allGenes = genes_list, annot = annFUN.gene2GO, gene2GO = geneID2GOmap)
     MF_resultclassic <- getSigGroups(MF_GOobject, classic)
-    MF_tops <- length(score(MF_resultclassic)[score(MF_resultclassic) < 0.05])
+    # MF_tops <- length(score(MF_resultclassic)[score(MF_resultclassic) < 0.05])
+    MF_tops <- length(score(MF_resultclassic)[score(MF_resultclassic) < pval_thres])
     MF_results_table <- GenTable(MF_GOobject, classic = MF_resultclassic, orderBy = "classic", ranksOf = "classic", topNodes = MF_tops)
     write.table(MF_results_table, file = paste("MF", name, sep = "_"), sep = "\t", quote = FALSE, row.names = F, col.names = T)
     printGraph(MF_GOobject, MF_resultclassic, firstSigNodes = 10, fn.prefix = paste("MFgraph", name, sep = "_"), useInfo = "all", pdfSW = T)
@@ -120,7 +123,8 @@ FullBasicTopGOAnalysis <- function(input, map, mode = c("MF", "CC", "BP"), outpu
     print("Generating Biological Process Results")
     BP_GOobject <- new("topGOdata", ontology = "BP", allGenes = genes_list, annot = annFUN.gene2GO, gene2GO = geneID2GOmap)
     BP_resultclassic <- getSigGroups(BP_GOobject, classic)
-    BP_tops <- length(score(BP_resultclassic)[score(BP_resultclassic) < 0.05])
+    # BP_tops <- length(score(BP_resultclassic)[score(BP_resultclassic) < 0.05])
+    BP_tops <- length(score(BP_resultclassic)[score(BP_resultclassic) < pval_thres])
     BP_results_table <- GenTable(BP_GOobject, classic = BP_resultclassic, orderBy = "classic", ranksOf = "classic", topNodes = BP_tops)
     write.table(BP_results_table, file = paste("BP", name, sep = "_"), sep = "\t", quote = FALSE, row.names = F, col.names = T)
     printGraph(BP_GOobject, BP_resultclassic, firstSigNodes = 10, fn.prefix = paste("BPgraph", name, sep = "_"), useInfo = "all", pdfSW = T)
@@ -130,7 +134,8 @@ FullBasicTopGOAnalysis <- function(input, map, mode = c("MF", "CC", "BP"), outpu
     print("Generating Cellular Component Results")
     CC_GOobject <- new("topGOdata", ontology = "CC", allGenes = genes_list, annot = annFUN.gene2GO, gene2GO = geneID2GOmap)
     CC_resultclassic <- getSigGroups(CC_GOobject, classic)
-    CC_tops <- length(score(CC_resultclassic)[score(CC_resultclassic) < 0.05])
+    # CC_tops <- length(score(CC_resultclassic)[score(CC_resultclassic) < 0.05])
+    CC_tops <- length(score(CC_resultclassic)[score(CC_resultclassic) < pval_thres])
     CC_results_table <- GenTable(CC_GOobject, classic = CC_resultclassic, orderBy = "classic", ranksOf = "classic", topNodes = CC_tops)
     write.table(CC_results_table, file = paste("CC", name, sep = "_"), sep = "\t", quote = FALSE, row.names = F, col.names = T)
     printGraph(CC_GOobject, CC_resultclassic, firstSigNodes = 10, fn.prefix = paste("CCgraph", name, sep = "_"), useInfo = "all", pdfSW = T)
@@ -150,52 +155,66 @@ FullBasicTopGOAnalysis <- function(input, map, mode = c("MF", "CC", "BP"), outpu
 }
 
 orders <- commandArgs(trailingOnly = TRUE)
+# orders <- c("input", "map", "-pval_thres", "0.75", "output")
 
-input <- orders[1]
-gene2go_map <- orders[2]
+orders <- c(orders, "NA")                          # Because I have an uneven number of arguments and...
+args_matrix <- matrix(orders, ncol = 2, byrow = T) # to create something similar to a dic
+                                                   # I create this matrix with 2 columns
+# These args are mandatory
+input <- args_matrix[1,1]
+map <- args_matrix[1,2]
+output <- args_matrix[length(args_matrix[,1]),1]
 
-if (length(orders) == 5){
-  taxid <- orders[3]
-  mode <- orders[4]
-  output <- orders[5]
-  print("2")
-} 
-if (length(orders) == 4){
-  if (is.na(as.integer(orders[3]))){
-    mode <- strsplit(orders[3], ", |,|-| ")
-    output <- orders[4]
-    print("3")
-  }else{
-    taxid <- orders[3]
-    mode <- list(c("MF", "CC", "BP"))
-    output <- orders[4]
-    print("4")
-  }  
+# These args are optional
+taxid <- args_matrix[match("-taxid", args_matrix),2]
+if (is.na(taxid)){
+  taxid <- "9606"
 }
-if (length(orders) == 3){
-  output <- orders[3]
+
+mode <- args_matrix[match("-mode", args_matrix),2]
+if (is.na(mode)){
   mode <- list(c("MF", "CC", "BP"))
-  cat("5")
-}
-if (substr(gene2go_map, nchar(gene2go_map)-3, nchar(gene2go_map)) == ".map"){
-  map <- gene2go_map
-}
-if (gene2go_map == "gene2go:download"){
-  print("Downloading Gene2Go table")
-  gene2go_map <- gene2go_downloader()
-  print("Generating map file 1/2")
-  gene2go_tax_extrator(taxid, gene2go_map)
-  print("Generating map file 2/2")
-  map <- mapper(taxid)
-}
-if (gene2go_map == "gene2go"){
-  print("Generating map file 1/2")
-  gene2go_tax_extrator(taxid, gene2go_map)
-  print("Generating map file 2/2")
-  map <- mapper(taxid)
+}else{
+  mode <- strsplit(mode, ", |,|-| ")
+  }
+
+pval_thres <- args_matrix[match("-pval_thres", args_matrix),2]
+if (is.na(pval_thres)){
+  pval_thres <- 0.05
+}else{
+  pval_thres <- as.numeric(pval_thres)
 }
 
-# Rscript Enrichment/U-TopGOFullBasic.r ncbi20_run/genes_lists/ analisis_data/Annotation_sources/TopGo_stuff/9606_geneID2GO.map enrich
-# Rscript Enrichment/U-TopGOFullBasic.r ncbi20_run/genes_lists/ gene2go:download 9606 enrich
+if (substr(map, nchar(map)-3, nchar(map)) == ".map"){
+  map <- map
+ }else{
+  if (map == "gene2go:download"){
+    print("Downloading Gene2Go table")
+    gene2go_map <- gene2go_downloader()
+    print("Generating map file 1/2")
+    gene2go_tax_extrator(taxid, map)
+    print("Generating map file 2/2")
+    map <- mapper(taxid)
+    print("Map file generated")
+  }
+  if (map == "gene2go"){
+    print("Generating map file 1/2")
+    gene2go_tax_extrator(taxid, map)
+    print("Generating map file 2/2")
+    map <- mapper(taxid)
+    print("Map file generated")
+  }
+}
 
-FullBasicTopGOAnalysis(input, map, mode, output)
+# Rscript Enrichment/U-TopGOFullBasic.r gene_lists/ 
+# gene2go:download/gene2go/.*.map <taxid> 
+# <mode(MF-CC-BP)> <pval_thres=0.05> output
+FullBasicTopGOAnalysis(input, map, mode, output, pval_thres)
+
+
+
+
+
+
+
+
