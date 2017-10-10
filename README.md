@@ -71,7 +71,7 @@ python ../FromBed2Net.py -extract_genes ncbi_hg19_run/tsvs/annoted_Feature_N1.ts
 
 All the previous steps can be done with a single command:
 ```
-python ../FromBed2Net.py -full initial_file_4testing.bed 5-3-4 ncbi_hg19.gff3 ncbi19_run/
+python ../FromBed2Net.py -full initial_file_4testing.bed 5-3-4 ncbi_hg19.gff3 example/
 ```
 ## ENRICHMENT
 
@@ -80,19 +80,29 @@ You can perform this by having a mapping file gene-to-goID, and genes lists as q
 This file contains the mapping of several taxons, by default it is going to retrieve the mappings of the tax 9606, homo sapiens, however you can retrieve the tax id that you want. We run this analisys using Rscript (what is between <> is optional):
 
 ```
-Rscript Enrichment/U-TopGOFullBasic.r gene_lists/ gene2go:download/gene2go/.*.map <taxid> <mode(MF-CC-BP)> output
+Rscript ../TopGOer.r annotation_results/genes_lists/ gene2go:download/gene2go/.*.map <-taxid="9060" taxid> <-mode="MF-CC-BP" "BP-CC"> <-pval_thres=0.05 "0.03"> output
 ```
+
+Now the optional arguments must have a previus flag to be identified, as I hope that you understands, each of one has a default value (human tax, all GO categories, pval_threshold 0.05. 
 
 ### Download mode
 ```
-Rscript ../TopGOer.r ncbi19_run/genes_lists/ gene2go:download 9606 enrich
+Rscript ../TopGOer.r annotation_results/genes_lists/ gene2go:download <-taxid="9060" taxid> <-mode="MF-CC-BP" "BP-CC"> <-pval_thres=0.05 "0.03"> output
 ```
-
+### Extract a new tax of your gene2go file previously downloaded
+```
+Rscript ../TopGOer.r annotation_results/genes_lists/ gene2go <-taxid="9060" taxid> <-mode="MF-CC-BP" "BP-CC"> <-pval_thres=0.05 "0.03"> output
+```
 ### Give a map yourself
 ```
-Rscript ../TopGOer.r ncbi19_run/genes_lists/ 9606_geneID2GO.map CC-BP enrich
+Rscript ../TopGOer.r annotation_results/genes_lists/ 9606_geneID2GO.map CC-BP enrich
 ```
 
 ## HOTNET2
 
 >(Working on it)
+
+
+
+
+
