@@ -98,7 +98,7 @@ python ../sumarizer.py  ncbi_hg19_run/ 0.005
 
 ## HTMLIZER
 
-It reformats the output of sumarizer in a *by now* gorgeous way adding url to each GeneID, HP, GO ID, and gives you, what I called, AmiGO GRAPH (given by the representation of the GOs selected after the summary http://amigo.geneontology.org/visualize) and a Minimum GO Graph (taken from the results of the enrichment annalysis). Please be aware, that AmiGO give you all sourrounding GOterms and TopGO gives you the minimun path that connect
+It reformats the output of sumarizer in a *by now* gorgeous way adding url to each GeneID, HP, GO ID, and gives you, what I called, AmiGO GRAPH (given by the representation of the GOs selected after the summary http://amigo.geneontology.org/visualize) and a TopGO Graph (taken from the results of the enrichment annalysis). Please be aware, that AmiGO gives you all the sourrounding GOterms and TopGO gives you the minimun path that connect and both are drawn according to the GO.ID that have passed the threshold of each . 
 
 python ../HTMLizer.py ncbi_hg19_run/summed_up_annot/
 python ../HTMLizer.py ncbi_hg19_run/summed_up_annot/Feature_N2_summary.txt

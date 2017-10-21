@@ -14,6 +14,7 @@ from gff3s_manager  import ncbi_formatter, gff3_download
 from bed_tsv import annotation, tsver
 from gene_extractor import gene_extractor
 
+script_path = os.path.dirname(sys.argv[0])
 mode = sys.argv[1]
 
 if mode == "--help":
@@ -68,6 +69,6 @@ if mode == "-full":
     os.system("mv {}* {}".format(first_names, output_folder))
     print "WARNING if your initial file is also in this folder you will find it in the output directory"
 
-    os.system("Rscript ../TopGOer.r {}/genes_lists/ 9606_geneID2GO.map {}".format(output_folder, first_names))
-    os.system("python ../sumarizer.py {} 0.003".format(output_folder))
-    os.system("python ../HTMLizer.py {}/summed_up_annot/".format(output_folder))
+    os.system("Rscript {}/TopGOer.r {}/genes_lists/ 9606_geneID2GO.map {}".format(script_path, output_folder, first_names))
+    os.system("python {}/sumarizer.py {} 0.003".format(script_path, output_folder))
+    os.system("python {}/HTMLizer.py {}/summed_up_annot/".format(script_path, output_folder))
