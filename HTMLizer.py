@@ -9,8 +9,9 @@ import re
 import os 
 import subprocess
 import sys
+from input_checker import input_checker
                 
-def tabloider(go_result_table):
+def tabloider(go_result_table, summary_warning = ""):
     handle = go_result_table.split("\n")
     go_result_table_htmlizer = ""
     for line in handle:
@@ -21,7 +22,9 @@ def tabloider(go_result_table):
             go_result_table_htmlizer += "</td><td>".join(bytabs)
         else:
             go_result_table_htmlizer += line+"\n"
-    go_result_table_htmlizer = go_result_table_htmlizer + "</table>"
+    if summary_warning != "":
+        summary_warning = "<tr><td colspan=6>{}</td></tr>\n".format(summary_warning)
+    go_result_table_htmlizer = "{}{}</table>".format(go_result_table_htmlizer, summary_warning)
     return go_result_table_htmlizer
     
 def urlizer(full_text, input_folder_or_file, GOus_dict):
@@ -29,86 +32,120 @@ def urlizer(full_text, input_folder_or_file, GOus_dict):
     HP_urlbase = '<h1><a href= "http://www.human-phenotype-ontology.org/hpoweb?id={}" target=new>{}</a></h1>'#.format(HP, HP)
     GO_urlbase = '<a href= "http://amigo.geneontology.org/amigo/term/{}" target=new>{}</a>'#.format(GOID, GOID)
     geneID_urlbase = '<a href= "https://www.ncbi.nlm.nih.gov/gene/{}" style="color:#7a1919;background-color:#ffffa0" target=new>{}</a>'#.format(GeneID, GeneID)
-    regions_match = re.compile(r"^chr.+")#(r"(chr[0-9]+|chr[XYM])\t([0-9]+)\t([0-9]+)")
+    full_graph_base = '<a href= "http://amigo.geneontology.org/visualize?format=png&term_data_type=string&mode=amigo&term_data={}" target=new>AmiGO GRAPH</a>'#.format(GOus_dict[lines[line][3]])
+    caption_base = '<table>\n<caption>{} {} <a href=../{} target=new>TogGO GRAPH</a></caption>\n'#.format(full_graph, lines[line], full_path_name)
+    regions_match = re.compile(r"^chr.+")
     GeneID_match = re.compile(r"^(\d+)")
     caption_match = re.compile(r"^###+.*")
-    HP_match = re.compile(r">+>+(HP:[0-9]+)")
+    HP_match = re.compile(r"(HP:[0-9]+)")
     GOID_match = re.compile(r"(GO:[0-9]+).*")
+    
     lines = full_text.split("\n")
     
     for line in xrange(len(lines)):
+        
         if regions_match.search(lines[line]) is not None:
             chro, start, end, score = lines[line].split("\t")
             region = "\t".join([chro, start, end])
             lines[line] = regions_urlbase.format(chro,start,end, region)+"\t"+score
+            
+        elif caption_match.search(lines[line]) is not None:
+            full_path_name = subprocess.check_output("find {}../*GOanalysis/{}/{}*.pdf".format(input_folder_or_file, feature_name, lines[line][3]), shell=True).rstrip("\n")
+            full_path_name = full_path_name.split("..")[-1] # this is to normalise the path and later i will add the .. in the substitution
+            full_graph = full_graph_base.format(GOus_dict[lines[line][3]])
+            lines[line] = caption_base.format(full_graph, lines[line], full_path_name)
 
-        if GeneID_match.match(lines[line]) is not None:
+        elif GeneID_match.match(lines[line]) is not None:
             GeneID = GeneID_match.match(lines[line]).group(1)
             lines[line] = geneID_urlbase.format(GeneID,GeneID)
-
-        if caption_match.search(lines[line]) is not None:
-            full_path_name = subprocess.check_output("find {}../annotation_results/*GOanalysis/results/{}/{}*.pdf".format(input_folder_or_file, HP, lines[line][3]), shell=True).rstrip("\n")
-            full_path_name = full_path_name.split("..")[-1]
-            full_graph = '<a href= "http://amigo.geneontology.org/visualize?format=png&term_data_type=string&mode=amigo&term_data={}" target=new>Full GO GRAPH</a>'.format(GOus_dict[lines[line][3]])
-            lines[line] = '<table>\n<caption>{} {} <a href=../{} target=new>Minimum GO GRAPH</a></caption>\n'.format(full_graph, lines[line], full_path_name)
             
-        if HP_match.search(lines[line]) is not None:
+        elif HP_match.search(lines[line]) is not None:
             HP = HP_match.search(lines[line]).group(1)
             lines[line] = re.sub(HP, HP_urlbase.format(HP, HP), lines[line])
-            HTML_heading = "<!DOCTYPE html>\n<html>\n<head>\n<title>{}</title>\
-            \n<style>\ntable, th, td {{border:1px solid black; border-collapse:\
-            collapse;}}\ncapth, td {{padding: 5px;}}\n</style></head>\n<body>\n<pre>".format(HP)
-
-        if GOID_match.search(lines[line]) is not None:
+            
+        elif GOID_match.search(lines[line]) is not None:
             GOID = GOID_match.search(lines[line]).group(1)
             lines[line] = re.sub(GOID, GO_urlbase.format(GOID, GOID), lines[line])
+        
     full_text = "\n".join(lines)
-    return HTML_heading, full_text
+    return full_text
     
 input_folder_or_file = sys.argv[1]
-os.mkdir("{}../htmls".format(input_folder_or_file))
 
-if os.path.isfile(input_folder_or_file):
-    summed_up_results = [sys.argv[1]]
+try:
+    os.mkdir("{}../htmls".format(input_folder_or_file))
+except:
+    answer = raw_input("Folder already exists, some files could be overwritten\nDo you want to continue? (Y/N)")
+    if answer == "N":
+        sys.exit()
+
+paths, input_files = input_checker(input_folder_or_file)
+    
+if os.path.isfile(input_files[0]) and len(input_files) == 1:
+    path = paths[0] 
 else:
-    summed_up_results = [sys.argv[1]+summed_up_result for summed_up_result in os.listdir(sys.argv[1])] # FromBed2NetPipeLine/mygoresults.txt
+    path = paths[0] 
+    input_files = [paths[0]+bed_file for bed_file in input_files]
 
-files_toprocess = len(summed_up_results)
+# if os.path.isfile(input_folder_or_file):
+#     summed_up_results = [input_folder_or_file]
+# else:
+#     summed_up_results = [input_folder_or_file+summed_up_result for summed_up_result in os.listdir(input_folder_or_file)] # FromBed2NetPipeLine/mygoresults.txt
+
+files_toprocess = len(input_files)
 counter = 1
 
-for input_summedup in summed_up_results:
+for input_summedup in input_files:
     print "HTMLizing {}\t{} of {}".format(input_summedup, counter, files_toprocess)
     counter += 1
     output_html = os.path.splitext(os.path.basename(input_summedup))[0]
     results_handle = open(input_summedup, "r")
+    feature_name = results_handle.readline().rstrip()
+    results_handle.seek(0)
     full_text = results_handle.read()
     parts = full_text.split("\n\n")
     
     GOus_dict = {}
     GOID_match = re.compile(r"(GO:[0-9]+).*")
-    if len(parts) > 1 and parts[-2][0] == "#" and len(parts):
-
+    if len(parts) > 1 and parts[-2][0] == "#":
+        
         GOus = GOID_match.findall(parts[-4])
+        if len(GOus) == 0:
+            summary_warning = "No GO.ID passed the summary threshold, you can still check the results of the TopGO GRAPH"
+        else:
+            summary_warning = ""
         GO_category = parts[-4][3]
         GOus_dict[GO_category] = re.sub(":", "%3A", " ".join(GOus))
-        parts[-4] = tabloider(parts[-4])
+        parts[-4] = tabloider(parts[-4], summary_warning)
 
         GOus = GOID_match.findall(parts[-3])
+        if len(GOus) == 0:
+            summary_warning = "No GO.ID passed the summary threshold, you can still check the results of the TopGO GRAPH"
+        else:
+            summary_warning = ""
         GO_category = parts[-3][3]
         GOus_dict[GO_category] = re.sub(":", "%3A", " ".join(GOus))
-        parts[-3] = tabloider(parts[-3])
+        parts[-3] = tabloider(parts[-3], summary_warning)
         
         GOus = GOID_match.findall(parts[-2])
+        if len(GOus) == 0:
+            summary_warning = "No GO.ID passed the summary threshold, you can still check the results of the TopGO GRAPH"
+        else:
+            summary_warning = ""
         GO_category = parts[-2][3]
         GOus_dict[GO_category] = re.sub(":", "%3A", " ".join(GOus))   
-        parts[-2] = tabloider(parts[-2])
+        parts[-2] = tabloider(parts[-2], summary_warning)
 
     full_text = "\n\n".join(parts)
-
-    HTML_heading, full_text = urlizer(full_text, input_folder_or_file, GOus_dict)
+    #print GOus_dict
+    full_text = urlizer(full_text, path, GOus_dict)
+    
+    HTML_heading = "<!DOCTYPE html>\n<html>\n<head>\n<title>{}</title>\
+                    \n<style>\ntable, th, td {{border:1px solid black; border-collapse:\
+                    collapse;}}\ncapth, td {{padding: 5px;}}\n</style></head>\n<body>\n<pre>".format(feature_name)
     HTML_footing = "</pre>\n</body>\n</html>"
 
-    htmlized = open("{}../htmls/{}.html".format(input_folder_or_file, output_html), "w")
+    htmlized = open("{}../htmls/{}.html".format(path, output_html), "w")
     htmlized.write(HTML_heading)
     htmlized.write(full_text)
     htmlized.write(HTML_footing)

@@ -20,8 +20,11 @@ def input_checker(input_dir_file):
                 if input_dir_file not in paths:
                     paths.append(input_dir_file)
             input_files.append(dir_or_file)
+    elif os.path.isfile(input_dir_file):
+        input_files = [input_dir_file]
+        paths = ["{}/".format(os.path.dirname(input_dir_file))]
     else:
-        input_files = [input_dir_file]#[input_dir_file.split("/")[-1]]
-        paths = ["/".join(input_dir_file.split("/")[:-1])+"/"]
+        print "No folder nor file found with that name"
+        sys.exit()
     return paths, input_files 
     

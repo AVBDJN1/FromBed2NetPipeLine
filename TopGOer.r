@@ -77,18 +77,18 @@ FullBasicTopGOAnalysis <- function(input, map, mode = c("MF", "CC", "BP"), outpu
   output_folder <- paste(output_path, output_folder, "_GOanalysis/", sep = "")
   system(paste("mkdir ", output_folder, sep = ""))
   
-  
   total_files <- length(input_files)
   counter <- 1
   for (file in input_files){
-    name <- strsplit(basename(file), "[.]")[[1]][1]
+    name <- strsplit(basename(file), "[_|.]")
+    name <- paste(name[[1]][2:(length(name[[1]])-1)], collapse = "_") # This is to quit the label of the GeneIDs files but keep the rest of the name
     print(sprintf("Reading %s    %i of %i", basename(file), counter, total_files))
     counter <- counter + 1
     problematic_HP <- 1
     
     linescheck <- readLines(paste(file))
     if(identical(linescheck,character(0))){
-      write(paste(name, " none genes found", as.character(problematic_HP), sep = ""), file = "warnings_enrichment.txt", append = TRUE, sep = "\n")
+      write(paste(name, " none genes found ", sep = ""), file = "warnings_enrichment.txt", append = TRUE, sep = "\n")
       problematic_HP <- problematic_HP + 1
     next}
     query_score_table <- read.table(text = gsub("\t", " ", readLines(file)), header = F, comment.char="", sep=" ", quote="", fill = T)
@@ -98,7 +98,7 @@ FullBasicTopGOAnalysis <- function(input, map, mode = c("MF", "CC", "BP"), outpu
     names(genes_list) <- gene_universe
     
     if (length(levels(genes_list)) == 1){
-      write(paste(name, " genes not mapped", as.character(problematic_HP), sep = ""), file = "warnings_enrichment.txt", append = TRUE, sep = "\n")
+      write(paste(name, " genes not mapped ", sep = ""), file = "warnings_enrichment.txt", append = TRUE, sep = "\n")
       problematic_HP <- problematic_HP + 1
     next}
 
@@ -108,7 +108,7 @@ FullBasicTopGOAnalysis <- function(input, map, mode = c("MF", "CC", "BP"), outpu
     MF_resultclassic <- getSigGroups(MF_GOobject, classic)
     MF_tops <- length(score(MF_resultclassic)[score(MF_resultclassic) < pval_thres])
     MF_results_table <- GenTable(MF_GOobject, classic = MF_resultclassic, orderBy = "classic", ranksOf = "classic", topNodes = MF_tops)
-    write.table(MF_results_table, file = paste("MF", name, sep = "_"), sep = "\t", quote = FALSE, row.names = F, col.names = T)
+    write.table(MF_results_table, file = paste("MF", name, ".txt", sep = "_"), sep = "\t", quote = FALSE, row.names = F, col.names = T)
     printGraph(MF_GOobject, MF_resultclassic, firstSigNodes = 10, fn.prefix = paste("MFgraph", name, sep = "_"), useInfo = "all", pdfSW = T)
     }
 
@@ -118,7 +118,7 @@ FullBasicTopGOAnalysis <- function(input, map, mode = c("MF", "CC", "BP"), outpu
     BP_resultclassic <- getSigGroups(BP_GOobject, classic)
     BP_tops <- length(score(BP_resultclassic)[score(BP_resultclassic) < pval_thres])
     BP_results_table <- GenTable(BP_GOobject, classic = BP_resultclassic, orderBy = "classic", ranksOf = "classic", topNodes = BP_tops)
-    write.table(BP_results_table, file = paste("BP", name, sep = "_"), sep = "\t", quote = FALSE, row.names = F, col.names = T)
+    write.table(BP_results_table, file = paste("BP", name, ".txt", sep = "_"), sep = "\t", quote = FALSE, row.names = F, col.names = T)
     printGraph(BP_GOobject, BP_resultclassic, firstSigNodes = 10, fn.prefix = paste("BPgraph", name, sep = "_"), useInfo = "all", pdfSW = T)
     }
     
@@ -128,7 +128,7 @@ FullBasicTopGOAnalysis <- function(input, map, mode = c("MF", "CC", "BP"), outpu
     CC_resultclassic <- getSigGroups(CC_GOobject, classic)
     CC_tops <- length(score(CC_resultclassic)[score(CC_resultclassic) < pval_thres])
     CC_results_table <- GenTable(CC_GOobject, classic = CC_resultclassic, orderBy = "classic", ranksOf = "classic", topNodes = CC_tops)
-    write.table(CC_results_table, file = paste("CC", name, sep = "_"), sep = "\t", quote = FALSE, row.names = F, col.names = T)
+    write.table(CC_results_table, file = paste("CC", name, ".txt", sep = "_"), sep = "\t", quote = FALSE, row.names = F, col.names = T)
     printGraph(CC_GOobject, CC_resultclassic, firstSigNodes = 10, fn.prefix = paste("CCgraph", name, sep = "_"), useInfo = "all", pdfSW = T)
     }
     
