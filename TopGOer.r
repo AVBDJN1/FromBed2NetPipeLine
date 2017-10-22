@@ -64,19 +64,17 @@ FullBasicTopGOAnalysis <- function(input, map, mode = c("MF", "CC", "BP"), outpu
   classic <- new("classicCount", testStatistic = GOFisherTest, name = "Fisher_Test")
   writeLines("Classic Test ready\nCreating output folder\nReading Input")
 
-  #input <- "./example_data/3col/GeneIDs/"
-  
   if(dir.exists(input)){
     output_path <- paste(dirname(input), "/", sep = "")
     input_files <- paste(input, list.files(input), sep = "")
-  }else{
+  } else if(file.exists(input)){
     output_path <- paste(dirname(input), "/../", sep = "")
     input_files <- c(input)
-  }
+  } else{sprintf("%s Don't exist on your files, please check your input", input)}
 
-  output_folder <- paste(output_path, output_folder, "_GOanalysis/", sep = "")
-  system(paste("mkdir ", output_folder, sep = ""))
-  
+  main_GOana_dirname <- paste(output_path, output_folder, "_GOanalysis/", sep = "")
+  dir.create(main_GOana_dirname)
+
   total_files <- length(input_files)
   counter <- 1
   for (file in input_files){
@@ -91,9 +89,9 @@ FullBasicTopGOAnalysis <- function(input, map, mode = c("MF", "CC", "BP"), outpu
       write(paste(name, " none genes found ", sep = ""), file = "warnings_enrichment.txt", append = TRUE, sep = "\n")
       problematic_HP <- problematic_HP + 1
     next}
+    
     query_score_table <- read.table(text = gsub("\t", " ", readLines(file)), header = F, comment.char="", sep=" ", quote="", fill = T)
     query <- query_score_table[,1]  
-
     genes_list <- factor(as.integer(gene_universe %in% query))
     names(genes_list) <- gene_universe
     
@@ -101,6 +99,9 @@ FullBasicTopGOAnalysis <- function(input, map, mode = c("MF", "CC", "BP"), outpu
       write(paste(name, " genes not mapped ", sep = ""), file = "warnings_enrichment.txt", append = TRUE, sep = "\n")
       problematic_HP <- problematic_HP + 1
     next}
+    
+    individual_results_folder <- paste(main_GOana_dirname, name, "/", sep = "")
+    dir.create(individual_results_folder)
 
     if ("MF" %in% mode[[1]]){
     print("Generating Mollecular Function Results")
@@ -108,8 +109,10 @@ FullBasicTopGOAnalysis <- function(input, map, mode = c("MF", "CC", "BP"), outpu
     MF_resultclassic <- getSigGroups(MF_GOobject, classic)
     MF_tops <- length(score(MF_resultclassic)[score(MF_resultclassic) < pval_thres])
     MF_results_table <- GenTable(MF_GOobject, classic = MF_resultclassic, orderBy = "classic", ranksOf = "classic", topNodes = MF_tops)
-    write.table(MF_results_table, file = paste("MF", name, ".txt", sep = "_"), sep = "\t", quote = FALSE, row.names = F, col.names = T)
-    printGraph(MF_GOobject, MF_resultclassic, firstSigNodes = 10, fn.prefix = paste("MFgraph", name, sep = "_"), useInfo = "all", pdfSW = T)
+    MF_results_filename <- paste(individual_results_folder, "MF_", name, ".txt", sep = "")
+    write.table(MF_results_table, file = MF_results_filename, quote = FALSE, row.names = F, col.names = T)
+    MF_graph_pdfname <- paste(individual_results_folder, "MFgraph_", name, sep = "")
+    printGraph(MF_GOobject, MF_resultclassic, firstSigNodes = 10, fn.prefix = MF_graph_pdfname, useInfo = "all", pdfSW = T)
     }
 
     if ("BP" %in% mode[[1]]){
@@ -118,8 +121,11 @@ FullBasicTopGOAnalysis <- function(input, map, mode = c("MF", "CC", "BP"), outpu
     BP_resultclassic <- getSigGroups(BP_GOobject, classic)
     BP_tops <- length(score(BP_resultclassic)[score(BP_resultclassic) < pval_thres])
     BP_results_table <- GenTable(BP_GOobject, classic = BP_resultclassic, orderBy = "classic", ranksOf = "classic", topNodes = BP_tops)
-    write.table(BP_results_table, file = paste("BP", name, ".txt", sep = "_"), sep = "\t", quote = FALSE, row.names = F, col.names = T)
-    printGraph(BP_GOobject, BP_resultclassic, firstSigNodes = 10, fn.prefix = paste("BPgraph", name, sep = "_"), useInfo = "all", pdfSW = T)
+
+    BP_results_filename <- paste(individual_results_folder, "BP_", name, ".txt", sep = "")
+    write.table(BP_results_table, file = BP_results_filename, quote = FALSE, row.names = F, col.names = T)
+    BP_graph_pdfname <- paste(individual_results_folder, "BPgraph_", name, sep = "")
+    printGraph(BP_GOobject, BP_resultclassic, firstSigNodes = 10, fn.prefix = BP_graph_pdfname, useInfo = "all", pdfSW = T)
     }
     
     if ("CC" %in% mode[[1]]){
@@ -128,19 +134,11 @@ FullBasicTopGOAnalysis <- function(input, map, mode = c("MF", "CC", "BP"), outpu
     CC_resultclassic <- getSigGroups(CC_GOobject, classic)
     CC_tops <- length(score(CC_resultclassic)[score(CC_resultclassic) < pval_thres])
     CC_results_table <- GenTable(CC_GOobject, classic = CC_resultclassic, orderBy = "classic", ranksOf = "classic", topNodes = CC_tops)
-    write.table(CC_results_table, file = paste("CC", name, ".txt", sep = "_"), sep = "\t", quote = FALSE, row.names = F, col.names = T)
-    printGraph(CC_GOobject, CC_resultclassic, firstSigNodes = 10, fn.prefix = paste("CCgraph", name, sep = "_"), useInfo = "all", pdfSW = T)
+    CC_results_filename <- paste(individual_results_folder, "CC_", name, ".txt", sep = "")
+    write.table(CC_results_table, file = CC_results_filename, quote = FALSE, row.names = F, col.names = T)
+    CC_graph_pdfname <- paste(individual_results_folder, "CCgraph_", name, sep = "")
+    printGraph(CC_GOobject, CC_resultclassic, firstSigNodes = 10, fn.prefix = CC_graph_pdfname, useInfo = "all", pdfSW = T)
     }
-    
-  individual_results_folder <- paste(output_folder, name, "/", sep = "")
-  system(paste("mkdir ", individual_results_folder, sep = ""))
-  
-  if (length(mode[[1]]) <= 2){
-    if (length(mode[[1]]) == 1){
-    system(sprintf(paste("mv %s* ", individual_results_folder, sep=""), as.character(mode[[1]][1])))
-    }else{system(sprintf(paste("mv %s* %s* ", individual_results_folder, sep=""), as.character(mode[[1]][1]), as.character(mode[[1]][2])))}
-  }else{system(paste("mv MF* BP* CC* ", individual_results_folder, sep=""))}
-  
   } # This is the one that closes the for loop and the next is an small checking
   
   if ("warnings_enrichment.txt" %in% list.files(".")){
