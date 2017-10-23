@@ -27,6 +27,7 @@ human_ensmbl2go <- function(){
   return("ENSG2GOmap.map")
 }
 
+
 gene2go_downloader <- function(){
   system("wget ftp://ftp.ncbi.nih.gov/gene/DATA/gene2go.gz")
   system("gunzip gene2go.gz")
@@ -86,7 +87,7 @@ FullBasicTopGOAnalysis <- function(input, map, mode = c("MF", "CC", "BP"), outpu
     
     linescheck <- readLines(paste(file))
     if(identical(linescheck,character(0))){
-      write(paste(name, " none genes found ", sep = ""), file = "warnings_enrichment.txt", append = TRUE, sep = "\n")
+      write(paste(name, " none genes found ", sep = ""), file = paste(main_GOana_dirname, "warnings_enrichment.txt", sep = ""), append = TRUE, sep = "\n")
       problematic_HP <- problematic_HP + 1
     next}
     
@@ -96,7 +97,7 @@ FullBasicTopGOAnalysis <- function(input, map, mode = c("MF", "CC", "BP"), outpu
     names(genes_list) <- gene_universe
     
     if (length(levels(genes_list)) == 1){
-      write(paste(name, " genes not mapped ", sep = ""), file = "warnings_enrichment.txt", append = TRUE, sep = "\n")
+      write(paste(name, " genes not mapped ", sep = ""), file = paste(main_GOana_dirname, "warnings_enrichment.txt", sep = ""), append = TRUE, sep = "\n")
       problematic_HP <- problematic_HP + 1
     next}
     
@@ -110,7 +111,7 @@ FullBasicTopGOAnalysis <- function(input, map, mode = c("MF", "CC", "BP"), outpu
     MF_tops <- length(score(MF_resultclassic)[score(MF_resultclassic) < pval_thres])
     MF_results_table <- GenTable(MF_GOobject, classic = MF_resultclassic, orderBy = "classic", ranksOf = "classic", topNodes = MF_tops)
     MF_results_filename <- paste(individual_results_folder, "MF_", name, ".txt", sep = "")
-    write.table(MF_results_table, file = MF_results_filename, quote = FALSE, row.names = F, col.names = T)
+    write.table(MF_results_table, file = MF_results_filename, sep = "\t", quote = FALSE, row.names = F, col.names = T)
     MF_graph_pdfname <- paste(individual_results_folder, "MFgraph_", name, sep = "")
     printGraph(MF_GOobject, MF_resultclassic, firstSigNodes = 10, fn.prefix = MF_graph_pdfname, useInfo = "all", pdfSW = T)
     }
@@ -123,7 +124,7 @@ FullBasicTopGOAnalysis <- function(input, map, mode = c("MF", "CC", "BP"), outpu
     BP_results_table <- GenTable(BP_GOobject, classic = BP_resultclassic, orderBy = "classic", ranksOf = "classic", topNodes = BP_tops)
 
     BP_results_filename <- paste(individual_results_folder, "BP_", name, ".txt", sep = "")
-    write.table(BP_results_table, file = BP_results_filename, quote = FALSE, row.names = F, col.names = T)
+    write.table(BP_results_table, file = BP_results_filename, sep = "\t", quote = FALSE, row.names = F, col.names = T)
     BP_graph_pdfname <- paste(individual_results_folder, "BPgraph_", name, sep = "")
     printGraph(BP_GOobject, BP_resultclassic, firstSigNodes = 10, fn.prefix = BP_graph_pdfname, useInfo = "all", pdfSW = T)
     }
@@ -135,7 +136,7 @@ FullBasicTopGOAnalysis <- function(input, map, mode = c("MF", "CC", "BP"), outpu
     CC_tops <- length(score(CC_resultclassic)[score(CC_resultclassic) < pval_thres])
     CC_results_table <- GenTable(CC_GOobject, classic = CC_resultclassic, orderBy = "classic", ranksOf = "classic", topNodes = CC_tops)
     CC_results_filename <- paste(individual_results_folder, "CC_", name, ".txt", sep = "")
-    write.table(CC_results_table, file = CC_results_filename, quote = FALSE, row.names = F, col.names = T)
+    write.table(CC_results_table, file = CC_results_filename, sep = "\t", quote = FALSE, row.names = F, col.names = T)
     CC_graph_pdfname <- paste(individual_results_folder, "CCgraph_", name, sep = "")
     printGraph(CC_GOobject, CC_resultclassic, firstSigNodes = 10, fn.prefix = CC_graph_pdfname, useInfo = "all", pdfSW = T)
     }

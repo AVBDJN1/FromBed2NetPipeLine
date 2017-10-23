@@ -71,4 +71,4 @@ if mode == "-full":
 
     os.system("Rscript {}/TopGOer.r {}/genes_lists/ 9606_geneID2GO.map {}".format(script_path, output_folder, first_names))
     os.system("python {}/sumarizer.py {} 0.003".format(script_path, output_folder))
-    os.system("python {}/HTMLizer.py {}/summed_up_annot/".format(script_path, output_folder))
+    os.system("python {}/HTMLizer.py {}/*summed_up_annot/".format(script_path, output_folder))

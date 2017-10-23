@@ -54,12 +54,6 @@ def GO_analysis_writter(go_results_path, threshold, summary_handle):
                 except:
                     summary_handle.write(line)
             summary_handle.write("\n") # this is \n to mantain the format for the HTMLizer
-#            if MF == False:
-#                summary_handle.write("\nNo GO.ID passed the summary threshold,\
-#                 you can still check the results of the TopGO GRAPH in case that you\
-#                 want to change the threshold\n")
-#            else:
-#                summary_handle.write("\n")
             
         if go_result[0:2] == "CC":
             go_result_path = go_results_path+go_result
@@ -74,12 +68,6 @@ def GO_analysis_writter(go_results_path, threshold, summary_handle):
                 except:
                     summary_handle.write(line)
             summary_handle.write("\n")
-#            if CC == False:
-#                summary_handle.write("\nNo GO.ID passed the summary threshold,\
-#                 you can still check the results of the TopGO GRAPH in case that you\
-#                 want to change the threshold\n")
-#            else:
-#                summary_handle.write("\n")
             
         if go_result[0:2] == "BP":
             go_result_path = go_results_path+go_result
@@ -94,23 +82,17 @@ def GO_analysis_writter(go_results_path, threshold, summary_handle):
                 except:
                     summary_handle.write(line)
             summary_handle.write("\n")
-#            if MF == False:
-#                summary_handle.write("\nNo GO.ID passed the summary threshold,\
-#                 you can still check the results of the TopGO GRAPH in case that you\
-#                 want to change the threshold\n")
-#            else:
-#                summary_handle.write("\n")
             
         if CC and BP and MF:
             errors.append(feature_name)
     
     if len(errors) >= 1:
-        errors_summary_handle = open("errors_summary.txt", "w")
+        errors_summary_handle = open("{}_errors_summary.txt".format(threshold), "w")
         errors_summary_handle.write("The following features did not pass the summarizer threshold:\n{}".format("\n".join(errors)))
         errors_summary_handle.close()
             
 input_folder = sys.argv[1]
-if len(sys.argv) == 3:
+if len(sys.argv) >= 3:
     threshold = float(sys.argv[2])
 else:
     threshold = 0.05
@@ -123,8 +105,10 @@ tsv_list = ["{}tsvs/{}".format(input_folder, tsv_file) for tsv_file in os.listdi
 go_results_folder = next(x for x in annot_folders if re.search(".*GOanalysis", x) is not None) # to find the name of the folder
 go_result_folders = os.listdir("{}{}/".format(input_folder, go_results_folder))
 
+summary_output = "{}/{}_summed_up_annot/".format(input_folder, threshold)
+
 try:
-    os.mkdir("{}/summed_up_annot/".format(input_folder))
+    os.mkdir(summary_output)
 except:
     answer = raw_input("Folder already exists, some files could be overwritten\nDo you want to continue? (Y/N)")
     if answer == "N":
@@ -135,16 +119,16 @@ for index in xrange(len(tsv_list)):
     
     if feature_name in go_result_folders:
         go_results_path = "{}{}/{}/".format(input_folder, go_results_folder, feature_name)
-        summary_handle = open("{}/summed_up_annot/{}_summary.txt".format(input_folder, feature_name), "w")
+        summary_handle = open("{}{}_summary.txt".format(summary_output, feature_name), "w")
         genes_loci_score_writer(tsv_list[index], summary_handle)
         GO_analysis_writter(go_results_path, threshold, summary_handle)
         summary_handle.close()
 
     else:
-        summary_handle = open("{}/summed_up_annot/{}_summary.txt".format(input_folder, feature_name), "w")
+        summary_handle = open("{}{}_summary.txt".format(summary_output, feature_name), "w")
         genes_loci_score_writer(tsv_list[index], summary_handle)
         summary_handle.write("{} has no genes mapped to GO terms\n".format(feature_name))
         summary_handle.close()
 
-if os.path.isfile("errors_summary.txt"):
-    os.system("mv errors_summary.txt {}/summed_up_annot/".format(input_folder))
+if os.path.isfile("{}_errors_summary.txt".format(threshold)):
+    os.system("mv *errors_summary.txt {}".format(summary_output))

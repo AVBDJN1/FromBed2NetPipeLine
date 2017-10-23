@@ -33,7 +33,7 @@ def urlizer(full_text, input_folder_or_file, GOus_dict):
     GO_urlbase = '<a href= "http://amigo.geneontology.org/amigo/term/{}" target=new>{}</a>'#.format(GOID, GOID)
     geneID_urlbase = '<a href= "https://www.ncbi.nlm.nih.gov/gene/{}" style="color:#7a1919;background-color:#ffffa0" target=new>{}</a>'#.format(GeneID, GeneID)
     full_graph_base = '<a href= "http://amigo.geneontology.org/visualize?format=png&term_data_type=string&mode=amigo&term_data={}" target=new>AmiGO GRAPH</a>'#.format(GOus_dict[lines[line][3]])
-    caption_base = '<table>\n<caption>{} {} <a href=../{} target=new>TogGO GRAPH</a></caption>\n'#.format(full_graph, lines[line], full_path_name)
+    caption_base = '<table>\n<caption>{} {} <a href=..{} target=new>TogGO GRAPH</a></caption>\n'#.format(full_graph, lines[line], full_path_name)
     regions_match = re.compile(r"^chr.+")
     GeneID_match = re.compile(r"^(\d+)")
     caption_match = re.compile(r"^###+.*")
@@ -86,11 +86,6 @@ if os.path.isfile(input_files[0]) and len(input_files) == 1:
 else:
     path = paths[0] 
     input_files = [paths[0]+bed_file for bed_file in input_files]
-
-# if os.path.isfile(input_folder_or_file):
-#     summed_up_results = [input_folder_or_file]
-# else:
-#     summed_up_results = [input_folder_or_file+summed_up_result for summed_up_result in os.listdir(input_folder_or_file)] # FromBed2NetPipeLine/mygoresults.txt
 
 files_toprocess = len(input_files)
 counter = 1
