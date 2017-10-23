@@ -87,7 +87,8 @@ def GO_analysis_writter(go_results_path, threshold, summary_handle):
             errors.append(feature_name)
     
     if len(errors) >= 1:
-        errors_summary_handle = open("{}_errors_summary.txt".format(threshold), "w")
+        error_outdir = go_results_path.split("/")[0]
+        errors_summary_handle = open("{}/{}_errors_summary.txt".format(error_outdir, threshold), "w")
         errors_summary_handle.write("The following features did not pass the summarizer threshold:\n{}".format("\n".join(errors)))
         errors_summary_handle.close()
             
@@ -119,6 +120,7 @@ for index in xrange(len(tsv_list)):
     
     if feature_name in go_result_folders:
         go_results_path = "{}{}/{}/".format(input_folder, go_results_folder, feature_name)
+        
         summary_handle = open("{}{}_summary.txt".format(summary_output, feature_name), "w")
         genes_loci_score_writer(tsv_list[index], summary_handle)
         GO_analysis_writter(go_results_path, threshold, summary_handle)
