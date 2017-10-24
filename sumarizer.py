@@ -33,14 +33,13 @@ def genes_loci_score_writer(path_to_tsv, summary_handle):
         for locus_score in loci_genes:
             summary_handle.write("{}\n{}\n\n".format(locus_score, "\n".join(loci_genes[locus_score])))
 
-def GO_analysis_writter(go_results_path, threshold, summary_handle):
-    errors = []
+def GO_analysis_writter(go_results_path, threshold, summary_handle, errors):
     feature_name = go_results_path.split("/")[-2]    
     go_result_matches = (go_result for go_result in os.listdir(go_results_path) if re.search(".txt$", go_result) is not None)
     MF, CC, BP = False, False, False # if one of these comes true it means that none have passed the threshold of the summaryzer
 
-    for go_result in go_result_matches:
-                
+    for go_result in go_result_matches:        
+        
         if go_result[0:2] == "MF":
             go_result_path = go_results_path+go_result
             go_result_read = open(go_result_path, "r")
@@ -83,14 +82,10 @@ def GO_analysis_writter(go_results_path, threshold, summary_handle):
                     summary_handle.write(line)
             summary_handle.write("\n")
             
-        if CC and BP and MF:
-            errors.append(feature_name)
-    
-    if len(errors) >= 1:
-        error_outdir = go_results_path.split("/")[0]
-        errors_summary_handle = open("{}/{}_errors_summary.txt".format(error_outdir, threshold), "w")
-        errors_summary_handle.write("The following features did not pass the summarizer threshold:\n{}".format("\n".join(errors)))
-        errors_summary_handle.close()
+    if not CC and not BP and not MF:
+        errors.append("{} None category passed the threshold".format(feature_name))
+            
+    return errors
             
 input_folder = sys.argv[1]
 if len(sys.argv) >= 3:
@@ -114,23 +109,27 @@ except:
     answer = raw_input("Folder already exists, some files could be overwritten\nDo you want to continue? (Y/N)")
     if answer == "N":
         sys.exit()
-        
+
+errors = []
 for index in xrange(len(tsv_list)):
     feature_name = "_".join(os.path.splitext(os.path.basename(tsv_list[index]))[0].split("_")[1:])
     
     if feature_name in go_result_folders:
         go_results_path = "{}{}/{}/".format(input_folder, go_results_folder, feature_name)
-        
         summary_handle = open("{}{}_summary.txt".format(summary_output, feature_name), "w")
         genes_loci_score_writer(tsv_list[index], summary_handle)
-        GO_analysis_writter(go_results_path, threshold, summary_handle)
+        errors = GO_analysis_writter(go_results_path, threshold, summary_handle, errors)
         summary_handle.close()
 
     else:
         summary_handle = open("{}{}_summary.txt".format(summary_output, feature_name), "w")
         genes_loci_score_writer(tsv_list[index], summary_handle)
-        summary_handle.write("{} has no genes mapped to GO terms\n".format(feature_name))
+        summary_handle.write("has no genes mapped to GO terms\n")
+        errors.append("{} no genes mapped/found".format(feature_name))
         summary_handle.close()
 
-if os.path.isfile("{}_errors_summary.txt".format(threshold)):
-    os.system("mv *errors_summary.txt {}".format(summary_output))
+if len(errors) >= 1:
+    errors_summary_handle = open("{}/{}_errors_summary.txt".format(input_folder, threshold), "w")
+    errors_summary_handle.write("The following features raise a warning:\n{}".format("\n".join(errors)))
+    errors_summary_handle.close()
+
