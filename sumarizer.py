@@ -124,7 +124,7 @@ for index in xrange(len(tsv_list)):
     else:
         summary_handle = open("{}{}_summary.txt".format(summary_output, feature_name), "w")
         genes_loci_score_writer(tsv_list[index], summary_handle)
-        summary_handle.write("has no genes mapped to GO terms\n")
+        summary_handle.write("has no genes or not mapped to GO terms,\nsee enrichment warnings")
         errors.append("{} no genes mapped/found".format(feature_name))
         summary_handle.close()
 
