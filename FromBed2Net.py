@@ -25,7 +25,7 @@ if mode == "--help":
         
 if mode == "-HP_selection":
     input_file = sys.argv[2]
-    col_of_score, threshold, col_of_feature = sys.argv[3].split("-")
+    col_of_score, threshold, col_of_feature = sys.argv[3].split(",")
     criteria_divider(score_bed_selector(input_file, col_of_score, threshold), col_of_feature)    
     
 if mode == "-annotation":
@@ -49,7 +49,7 @@ if mode == "-extract_genes":
 if mode == "-full":
     input_file = sys.argv[2]
     first_names = os.path.splitext(os.path.basename(input_file))[0]
-    col_of_score, threshold, col_of_feature = sys.argv[3].split("-")
+    col_of_score, threshold, col_of_feature = sys.argv[3].split(",")
     input_dir_file = criteria_divider(score_bed_selector(input_file, col_of_score, threshold), col_of_feature)
     annotation_source = sys.argv[4]
     

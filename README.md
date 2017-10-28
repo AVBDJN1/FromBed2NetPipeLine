@@ -6,7 +6,7 @@ Here I give you a group of scripts that it might interest you to solve this issu
 I recommend you to use directly the **FULL ANNOTATION MODE**.
 
 ```
-python ../FromBed2Net.py -HP_selection initial_file_4testing.bed 5-3-4
+python ../FromBed2Net.py -HP_selection initial_file_4testing.bed 5,3,4
 ```
 
 This first mode `-HP_selection` just retrieve and divide the genomic regions by its feature. The input file is `initial_file_4testing.bed`
@@ -107,7 +107,7 @@ python ../HTMLizer.py ncbi_hg19_run/summed_up_annot/Feature_N2_summary.txt
 All the previous steps could be done with a single command, the enrichment is performed with the default values by now (pval = 0.05) (need to work on a way to personalize this with the arguments given after calling FromBed2Net.py I guess I will create a flag -enrichment and parse everything that is after it according to TopGOer.r). Also *sumarizer* is given a default threshold of 0.003 (I will also need to do something to pass this second threshold as an argument to FromBed2Net.py)
 
 ```
-python ../FromBed2Net.py -full initial_file_4testing.bed 5-4-4 ncbi_hg19.gff3 ncbi_hg19_run/
+python ../FromBed2Net.py -full initial_file_4testing.bed 5,4,4 ncbi_hg19.gff3 ncbi_hg19_run/
 ```
 
 ## CYTOSCAPE DIFFUSION
