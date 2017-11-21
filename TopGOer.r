@@ -55,6 +55,13 @@ mapper <- function(taxid){
   return(paste(taxid, "_geneID2GO.map", sep = ""))
 }
 
+genes_of_goes_writer <- function(genes_in_goes, out_folder, query){
+  for (GO_ID in names(genes_in_goes)){
+    sig_genes_in_go <- intersect(genes_in_goes[GO_ID][[1]], query)
+    write(sig_genes_in_go, file = paste(out_folder, GO_ID, sep = ""), sep = "\n")
+  }
+}
+
 FullBasicTopGOAnalysis <- function(input, map, mode = c("MF", "CC", "BP"), output_folder, pval_thres){
   
   geneID2GOmap <- readMappings(map)
@@ -103,6 +110,8 @@ FullBasicTopGOAnalysis <- function(input, map, mode = c("MF", "CC", "BP"), outpu
     
     individual_results_folder <- paste(main_GOana_dirname, name, "/", sep = "")
     dir.create(individual_results_folder)
+    genes_of_goes_outfolder <- paste(individual_results_folder, "genes_of_goes/", sep = "")
+    dir.create(genes_of_goes_outfolder)
 
     if ("MF" %in% mode[[1]]){
     print("Generating Mollecular Function Results")
@@ -114,6 +123,8 @@ FullBasicTopGOAnalysis <- function(input, map, mode = c("MF", "CC", "BP"), outpu
     write.table(MF_results_table, file = MF_results_filename, sep = "\t", quote = FALSE, row.names = F, col.names = T)
     MF_graph_pdfname <- paste(individual_results_folder, "MFgraph_", name, sep = "")
     printGraph(MF_GOobject, MF_resultclassic, firstSigNodes = 10, fn.prefix = MF_graph_pdfname, useInfo = "all", pdfSW = T)
+    genes_in_goes <- genesInTerm(MF_GOobject, MF_results_table$GO.ID)
+    genes_of_goes_writer(genes_in_goes, genes_of_goes_outfolder, query)
     }
 
     if ("BP" %in% mode[[1]]){
@@ -122,11 +133,12 @@ FullBasicTopGOAnalysis <- function(input, map, mode = c("MF", "CC", "BP"), outpu
     BP_resultclassic <- getSigGroups(BP_GOobject, classic)
     BP_tops <- length(score(BP_resultclassic)[score(BP_resultclassic) < pval_thres])
     BP_results_table <- GenTable(BP_GOobject, classic = BP_resultclassic, orderBy = "classic", ranksOf = "classic", topNodes = BP_tops)
-
     BP_results_filename <- paste(individual_results_folder, "BP_", name, ".txt", sep = "")
     write.table(BP_results_table, file = BP_results_filename, sep = "\t", quote = FALSE, row.names = F, col.names = T)
     BP_graph_pdfname <- paste(individual_results_folder, "BPgraph_", name, sep = "")
     printGraph(BP_GOobject, BP_resultclassic, firstSigNodes = 10, fn.prefix = BP_graph_pdfname, useInfo = "all", pdfSW = T)
+    genes_in_goes <- genesInTerm(BP_GOobject, BP_results_table$GO.ID)
+    genes_of_goes_writer(genes_in_goes, genes_of_goes_outfolder, query)
     }
     
     if ("CC" %in% mode[[1]]){
@@ -139,6 +151,8 @@ FullBasicTopGOAnalysis <- function(input, map, mode = c("MF", "CC", "BP"), outpu
     write.table(CC_results_table, file = CC_results_filename, sep = "\t", quote = FALSE, row.names = F, col.names = T)
     CC_graph_pdfname <- paste(individual_results_folder, "CCgraph_", name, sep = "")
     printGraph(CC_GOobject, CC_resultclassic, firstSigNodes = 10, fn.prefix = CC_graph_pdfname, useInfo = "all", pdfSW = T)
+    genes_in_goes <- genesInTerm(CC_GOobject, CC_results_table$GO.ID)
+    genes_of_goes_writer(genes_in_goes, genes_of_goes_outfolder, query)
     }
   } # This is the one that closes the for loop and the next is an small checking
   

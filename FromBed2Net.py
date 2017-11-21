@@ -71,4 +71,9 @@ if mode == "-full":
 
     os.system("Rscript {}/TopGOer.r {}/genes_lists/ 9606_geneID2GO.map {}".format(script_path, output_folder, first_names))
     os.system("python {}/sumarizer.py {} 0.003".format(script_path, output_folder))
+    
+    genes_of_goes_paths = subprocess.check_output("find {}/*GOanalysis/*/genes_of_goes -type d".format(output_folder), shell=True).rstrip("\n")
+    for genes_of_goes_path in genes_of_goes_paths.split("\n"):
+        os.system("python {}/HTMLizer.py {}/".format(script_path, genes_of_goes_path))
+        
     os.system("python {}/HTMLizer.py {}/*summed_up_annot/".format(script_path, output_folder))

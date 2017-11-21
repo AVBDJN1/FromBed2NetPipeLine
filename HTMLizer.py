@@ -34,6 +34,8 @@ def urlizer(full_text, input_folder_or_file, GOus_dict):
     geneID_urlbase = '<a href= "https://www.ncbi.nlm.nih.gov/gene/{}" style="color:#7a1919;background-color:#ffffa0" target=new>{}</a>'#.format(GeneID, GeneID)
     full_graph_base = '<a href= "http://amigo.geneontology.org/visualize?format=png&term_data_type=string&mode=amigo&term_data={}" target=new>AmiGO GRAPH</a>'#.format(GOus_dict[lines[line][3]])
     caption_base = '<table>\n<caption>{} {} <a href=..{} target=new>TogGO GRAPH</a></caption>\n'#.format(full_graph, lines[line], full_path_name)
+    sig_genes_base = '<a href=..{} target=new>{}</a>'
+    
     regions_match = re.compile(r"^chr.+")
     GeneID_match = re.compile(r"^(\d+)")
     caption_match = re.compile(r"^###+.*")
@@ -66,6 +68,11 @@ def urlizer(full_text, input_folder_or_file, GOus_dict):
         elif GOID_match.search(lines[line]) is not None:
             GOID = GOID_match.search(lines[line]).group(1)
             lines[line] = re.sub(GOID, GO_urlbase.format(GOID, GOID), lines[line])
+            full_path_name = subprocess.check_output("find {}/../*GOanalysis/{}/htmls/{}.html".format(input_folder_or_file, feature_name, GOID), shell=True).rstrip("\n")
+            full_path_name = full_path_name.split("..")[-1]
+            GO_elements = lines[line].split("</td><td>")
+            GO_elements[3] = sig_genes_base.format(full_path_name, GO_elements[3])
+            lines[line] = "</td><td>".join(GO_elements)
         
     full_text = "\n".join(lines)
     return full_text
