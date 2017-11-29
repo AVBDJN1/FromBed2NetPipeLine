@@ -22,6 +22,11 @@ if mode == "--help":
         print open("../README", "r").read()
     except:
         print open("README", "r").read()
+
+if mode == "-download_annot":
+    annotation_source = sys.argv[2]
+    gff3_download(annotation_source.split(":")[1])
+
         
 if mode == "-HP_selection":
     input_file = sys.argv[2]
@@ -50,12 +55,22 @@ if mode == "-full":
     input_file = sys.argv[2]
     first_names = os.path.splitext(os.path.basename(input_file))[0]
     col_of_score, threshold, col_of_feature = sys.argv[3].split(",")
-    input_dir_file = criteria_divider(score_bed_selector(input_file, col_of_score, threshold), col_of_feature)
-    annotation_source = sys.argv[4]
-    
     output_folder = sys.argv[5]
+    
     if output_folder[-1] != "/":
         output_folder = output_folder+"/"
+
+    try:
+        os.mkdir(output_folder)
+    except:
+        answer = raw_input("Folder already exists, some files could be overwritten\nDo you want to continue? (Y/N)")
+        if answer == "N":
+            sys.exit()
+
+    input_dir_file = criteria_divider(score_bed_selector(input_file, col_of_score, threshold, output_folder), col_of_feature, output_folder)
+
+
+    annotation_source = sys.argv[4]
     
     if annotation_source.split(":")[0] == "-download":
         gff3_download(annotation_source.split(":")[1])
@@ -66,7 +81,7 @@ if mode == "-full":
         annotation(input_dir_file, annotation_source, output_folder)
         tsver(output_folder)
         gene_extractor(output_folder, col_of_score)        
-    os.system("mv {}* {}".format(first_names, output_folder))
+    #os.system("mv {}* {}".format(first_names, output_folder))
     print "WARNING if your initial file is also in this folder you will find it in the output directory"
 
     os.system("Rscript {}/TopGOer.r {}/genes_lists/ 9606_geneID2GO.map {}".format(script_path, output_folder, first_names))

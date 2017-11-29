@@ -130,6 +130,6 @@ for index in xrange(len(tsv_list)):
 
 if len(errors) >= 1:
     errors_summary_handle = open("{}/{}_errors_summary.txt".format(input_folder, threshold), "w")
-    errors_summary_handle.write("The following features raise a warning:\n{}".format("\n".join(errors)))
+    errors_summary_handle.write("The following features raised a warning:\n{}".format("\n".join(errors)))
     errors_summary_handle.close()
 
