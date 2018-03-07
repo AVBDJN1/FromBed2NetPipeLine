@@ -3,31 +3,6 @@
 
 library(topGO)
 
-human_ensmbl2go <- function(){
-  library(biomaRt)
-  
-  mart <- useMart(biomart="ENSEMBL_MART_ENSEMBL", host="grch37.ensembl.org", path="/biomart/martservice",  dataset="hsapiens_gene_ensembl") # HumanGenome19
-  attr <- listAttributes(mart)
-  EG2GO <- getBM(mart=mart, attributes=c('ensembl_gene_id','go_id','goslim_goa_accession'))
-  EG2GO <- EG2GO[EG2GO$go_id != '',]
-  all_ensmbl_genes <- unique(EG2GO[,1])
-  
-  dictionar <- c()
-  for (gene in all_ensmbl_genes){
-    gos_aviable <- EG2GO[EG2GO[,1] == gene,]
-    unique_goes <- unique(gos_aviable[,2])
-    unique_slimgoes <- unique(gos_aviable[,3])
-    goes_str <- paste(unique_goes, collapse = ", ")
-    slim_goes_str <- paste(unique_slimgoes, collapse = ", ")
-    all_gous_str <- paste(goes_str, slim_goes_str, sep = ", ")
-    aception <- paste(gene, all_gous_str, sep = "\t")
-    dictionar <- rbind(dictionar, aception)
-  }
-  write.table(dictionar, file = "ENSG2GOmap.map", quote = FALSE, row.names = F, col.names = F)  
-  return("ENSG2GOmap.map")
-}
-
-
 gene2go_downloader <- function(){
   system("wget ftp://ftp.ncbi.nih.gov/gene/DATA/gene2go.gz")
   system("gunzip gene2go.gz")
@@ -55,121 +30,56 @@ mapper <- function(taxid){
   return(paste(taxid, "_geneID2GO.map", sep = ""))
 }
 
-genes_of_goes_writer <- function(genes_in_goes, out_folder, query){
-  for (GO_ID in names(genes_in_goes)){
-    sig_genes_in_go <- intersect(genes_in_goes[GO_ID][[1]], query)
-    write(sig_genes_in_go, file = paste(out_folder, GO_ID, sep = ""), sep = "\n")
-  }
-}
-
-FullBasicTopGOAnalysis <- function(input, map, mode = c("MF", "CC", "BP"), output_folder, pval_thres){
-  
-  geneID2GOmap <- readMappings(map)
-  writeLines("Map Readed")
-  geneID2GOmap_table <- read.table(file = map, header = F, comment.char="", sep="\t", quote="")
-  gene_universe <- geneID2GOmap_table[,1]
-  writeLines("Gene Universe Acknowledged")  
-  classic <- new("classicCount", testStatistic = GOFisherTest, name = "Fisher_Test")
-  writeLines("Classic Test ready\nCreating output folder\nReading Input")
-
+input_checker <- function (input){
   if(dir.exists(input)){
     output_path <- paste(dirname(input), "/", sep = "")
     input_files <- paste(input, list.files(input), sep = "")
+    return(input_files)
   } else if(file.exists(input)){
     output_path <- paste(dirname(input), "/../", sep = "")
     input_files <- c(input)
-  } else{sprintf("%s Don't exist on your files, please check your input", input)}
-
-  main_GOana_dirname <- paste(output_path, output_folder, "_GOanalysis/", sep = "")
-  dir.create(main_GOana_dirname)
-
-  total_files <- length(input_files)
-  counter <- 1
-  for (file in input_files){
-    name <- strsplit(basename(file), "[_|.]")
-    name <- paste(name[[1]][2:(length(name[[1]])-1)], collapse = "_") # This is to quit the label of the GeneIDs files but keep the rest of the name
-    print(sprintf("Reading %s    %i of %i", basename(file), counter, total_files))
-    counter <- counter + 1
-    problematic_HP <- 1
-    
-    linescheck <- readLines(paste(file))
-    if(identical(linescheck,character(0))){
-      write(paste(name, " none genes found ", sep = ""), file = paste(main_GOana_dirname, "warnings_enrichment.txt", sep = ""), append = TRUE, sep = "\n")
-      problematic_HP <- problematic_HP + 1
-    next}
-    
-    query_score_table <- read.table(text = gsub("\t", " ", readLines(file)), header = F, comment.char="", sep=" ", quote="", fill = T)
-    query <- query_score_table[,1]  
-    genes_list <- factor(as.integer(gene_universe %in% query))
-    names(genes_list) <- gene_universe
-    
-    if (length(levels(genes_list)) == 1){
-      write(paste(name, " genes not mapped ", sep = ""), file = paste(main_GOana_dirname, "warnings_enrichment.txt", sep = ""), append = TRUE, sep = "\n")
-      problematic_HP <- problematic_HP + 1
-    next}
-    
-    individual_results_folder <- paste(main_GOana_dirname, name, "/", sep = "")
-    dir.create(individual_results_folder)
-    genes_of_goes_outfolder <- paste(individual_results_folder, "genes_of_goes/", sep = "")
-    dir.create(genes_of_goes_outfolder)
-
-    if ("MF" %in% mode[[1]]){
-    print("Generating Mollecular Function Results")
-    MF_GOobject <- new("topGOdata", ontology = "MF", allGenes = genes_list, annot = annFUN.gene2GO, gene2GO = geneID2GOmap)
-    MF_resultclassic <- getSigGroups(MF_GOobject, classic)
-    MF_tops <- length(score(MF_resultclassic)[score(MF_resultclassic) < pval_thres])
-    MF_results_table <- GenTable(MF_GOobject, classic = MF_resultclassic, orderBy = "classic", ranksOf = "classic", topNodes = MF_tops)
-    MF_results_filename <- paste(individual_results_folder, "MF_", name, ".txt", sep = "")
-    write.table(MF_results_table, file = MF_results_filename, sep = "\t", quote = FALSE, row.names = F, col.names = T)
-    MF_graph_pdfname <- paste(individual_results_folder, "MFgraph_", name, sep = "")
-    printGraph(MF_GOobject, MF_resultclassic, firstSigNodes = 10, fn.prefix = MF_graph_pdfname, useInfo = "all", pdfSW = T)
-    genes_in_goes <- genesInTerm(MF_GOobject, MF_results_table$GO.ID)
-    genes_of_goes_writer(genes_in_goes, genes_of_goes_outfolder, query)
-    }
-
-    if ("BP" %in% mode[[1]]){
-    print("Generating Biological Process Results")
-    BP_GOobject <- new("topGOdata", ontology = "BP", allGenes = genes_list, annot = annFUN.gene2GO, gene2GO = geneID2GOmap)
-    BP_resultclassic <- getSigGroups(BP_GOobject, classic)
-    BP_tops <- length(score(BP_resultclassic)[score(BP_resultclassic) < pval_thres])
-    BP_results_table <- GenTable(BP_GOobject, classic = BP_resultclassic, orderBy = "classic", ranksOf = "classic", topNodes = BP_tops)
-    BP_results_filename <- paste(individual_results_folder, "BP_", name, ".txt", sep = "")
-    write.table(BP_results_table, file = BP_results_filename, sep = "\t", quote = FALSE, row.names = F, col.names = T)
-    BP_graph_pdfname <- paste(individual_results_folder, "BPgraph_", name, sep = "")
-    printGraph(BP_GOobject, BP_resultclassic, firstSigNodes = 10, fn.prefix = BP_graph_pdfname, useInfo = "all", pdfSW = T)
-    genes_in_goes <- genesInTerm(BP_GOobject, BP_results_table$GO.ID)
-    genes_of_goes_writer(genes_in_goes, genes_of_goes_outfolder, query)
-    }
-    
-    if ("CC" %in% mode[[1]]){
-    print("Generating Cellular Component Results")
-    CC_GOobject <- new("topGOdata", ontology = "CC", allGenes = genes_list, annot = annFUN.gene2GO, gene2GO = geneID2GOmap)
-    CC_resultclassic <- getSigGroups(CC_GOobject, classic)
-    CC_tops <- length(score(CC_resultclassic)[score(CC_resultclassic) < pval_thres])
-    CC_results_table <- GenTable(CC_GOobject, classic = CC_resultclassic, orderBy = "classic", ranksOf = "classic", topNodes = CC_tops)
-    CC_results_filename <- paste(individual_results_folder, "CC_", name, ".txt", sep = "")
-    write.table(CC_results_table, file = CC_results_filename, sep = "\t", quote = FALSE, row.names = F, col.names = T)
-    CC_graph_pdfname <- paste(individual_results_folder, "CCgraph_", name, sep = "")
-    printGraph(CC_GOobject, CC_resultclassic, firstSigNodes = 10, fn.prefix = CC_graph_pdfname, useInfo = "all", pdfSW = T)
-    genes_in_goes <- genesInTerm(CC_GOobject, CC_results_table$GO.ID)
-    genes_of_goes_writer(genes_in_goes, genes_of_goes_outfolder, query)
-    }
-  } # This is the one that closes the for loop and the next is an small checking
-  
-  if ("warnings_enrichment.txt" %in% list.files(".")){
-    print("Some HP files couldn't be processed, take a look at warnings_enrichment.txt in your output folder")
-    system(paste("mv warnings_enrichment.txt ", output_folder, sep=""))
-    }else {print("Nice! No Warnings!")}
+    return(input_files)
+  } else{writeLines(sprintf(
+    "%s Don't exist on your files, please check your input", input))}
 }
 
-orders <- commandArgs(trailingOnly = TRUE)
+gene_list_extractor <- function(input_file, gene_col, gene_score, gene_score_col){
+  bed_file <- read.table(input_file, header = F, sep = "\t", quote = "")
+  genes_list <- bed_file[bed_file[,gene_score_col] > gene_score, gene_col]
+  return(genes_list)
+}
+
+results_with_sig_genes <- function(TopGOobject, classic, pval_thres, genes_query, results_filename){
+  resultsclassic <- getSigGroups(TopGOobject, classic)
+  tops <- length(score(resultsclassic)[score(resultsclassic) < pval_thres])
+  results_table <- GenTable(TopGOobject, classic = resultsclassic, orderBy = "classic", ranksOf = "classic", topNodes = tops)
+  genes_in_goes <- genesInTerm(TopGOobject, results_table$GO.ID)
+  colnames(results_table)[6] <- "Fisher Test"
+  intersected <- lapply(genes_in_goes, function(x) intersect(x, genes_query))
+  genes_of_goes <- unlist(lapply(intersected, function(x) paste(x, collapse = ":")))
+  results_table <- cbind(results_table, genes_of_goes)
+  colnames(results_table)[7] <- "Significant Genes"
+  write.table(results_table, file = results_filename, sep = "\t", quote = FALSE, row.names = F, col.names = T)
+}
+
+FullBasicTopGOAnalysis <- function(genes_list, name, map, mode = c("MF", "CC", "BP"), output_folder, classic, pval_thres){
+  genes_query <- names(genes_list)[genes_list == 1]
+  for (ont in mode){
+    print(sprintf("Generating %s Results", ont))
+    results_filename <- paste(output_folder, ont, "_", name, ".txt", sep = "")
+    TopGOobject <- new("topGOdata", ontology = ont, allGenes = genes_list, annot = annFUN.gene2GO, gene2GO = map)
+    results_with_sig_genes(TopGOobject, classic, pval_thres, genes_query, results_filename)
+  }
+}
+
+{orders <- commandArgs(trailingOnly = TRUE)
 
 orders <- c(orders, "NA")                          # Because I have an uneven number of arguments and...
-args_matrix <- matrix(orders, ncol = 2, byrow = T) # to create something similar to a dic
+args_matrix <- matrix(orders, ncol = 2, byrow = T) # to create something similar to a dictionary
                                                    # I create this matrix of 2 columns
 # These args are mandatory
-input <- args_matrix[1,1]
-map <- args_matrix[1,2]
+input_file <- args_matrix[1,1]
+map_file <- args_matrix[1,2]
 output_folder <- args_matrix[length(args_matrix[,1]),1]
 
 # These args are optional
@@ -180,9 +90,9 @@ if (is.na(taxid)){
 
 mode <- args_matrix[match("-mode", args_matrix),2]
 if (is.na(mode)){
-  mode <- list(c("MF", "CC", "BP"))
+  mode <- c("MF", "CC", "BP")
 }else{
-  mode <- strsplit(mode, ", |,|-| ")
+  mode <- unlist(strsplit(mode, ", |,|-| "))
   }
 
 pval_thres <- args_matrix[match("-pval_thres", args_matrix),2]
@@ -192,10 +102,9 @@ if (is.na(pval_thres)){
   pval_thres <- as.numeric(pval_thres)
 }
 
-if (substr(map, nchar(map)-3, nchar(map)) == ".map"){
-  map <- map
+if (substr(map_file, nchar(map_file)-3, nchar(map_file)) == ".map"){
  }else{
-  if (map == "gene2go:download"){
+  if (map_file == "gene2go:download"){
     print("Downloading Gene2Go table")
     map <- gene2go_downloader()
     print("Generating map file 1/2")
@@ -204,17 +113,75 @@ if (substr(map, nchar(map)-3, nchar(map)) == ".map"){
     map <- mapper(taxid)
     print("Map file generated")
   }
-  if (map == "gene2go"){
+  if (map_file == "gene2go"){
     print("Generating map file 1/2")
-    gene2go_tax_extrator(taxid, map)
+    gene2go_tax_extrator(taxid, map_file)
     print("Generating map file 2/2")
-    map <- mapper(taxid)
+    map_file <- mapper(taxid)
     print("Map file generated")
   }
 }
-
+}
 # Rscript Enrichment/U-TopGOFullBasic.r gene_lists/ 
 # gene2go:download/gene2go/.*.map <taxid> 
 # <mode(MF-CC-BP)> <pval_thres=0.05> output
-FullBasicTopGOAnalysis(input, map, mode, output_folder, pval_thres)
 
+#setwd("Desktop/Rarebiosis/")
+# USER DEFINED CONSTANTS
+# EXAMPLE
+# input_folder <- "annotated/"
+# input_file <- "annotated/annotated_HP:0025028.bed"
+# map_file <- "annotation_files/9606_geneID2GO.map"
+# gene_col <- 10
+# gene_score_col <- 5
+# gene_score <- 2
+# pval_thres <- 0.01
+# output_folder <- "./"
+# mode <- c("MF", "CC", "BP")
+# mode <- c("MF", "CC", "BP")
+
+errors <- ""
+input_files <- input_checker(input_file)
+total_files <- length(input_files)
+counter <- 1
+
+map <- readMappings(map_file)
+gene_universe <- read.table(file = map_file, header = F, comment.char="", sep="\t", quote="")[,1]
+
+classic <- new("classicCount", testStatistic = GOFisherTest, name = "Fisher_Test")
+
+for (input_file in input_files){
+  
+  name <- strsplit(basename(input_file), split = "[_|.]")[[1]][2]
+  print(sprintf("Reading %s    %i of %i", name, counter, total_files))
+  counter <- counter + 1
+  
+  # 1º Possible Error == Empty File
+  if (file.info(input_file)$size == 0){
+    errors <- paste(errors, name, "\tNO GENES\n", sep = "")
+    next}
+  
+  genes_list <- gene_list_extractor(input_file, gene_col, gene_score, gene_score_col)
+  genes_list <- factor(as.integer(gene_universe %in% genes_list))
+  names(genes_list) <- gene_universe
+  
+  # 2º Possible Error == No gene-score above cut-off
+  if (length(genes_list) == 0){
+    errors <- paste(errors, name, "\tNO GENE-SCORE ABOVE CUT-OFF\n", sep = "")
+    next}
+  
+  # 3º Possible Error == No mapping genes
+  if(!any(genes_list %in% gene_universe)){
+    errors <- paste(errors, name, "\tNO GENE MAP TO ONTOLOGY\n", sep = "")
+    next}  
+  
+  FullBasicTopGOAnalysis(genes_list, name, map, mode, output_folder, classic, pval_thres)
+}
+
+if (errors == ""){
+  print("Nice! No Warnings!")
+  }else{
+  error_file <- paste(output_folder, "ERRORS.txt", sep = "")
+  write(errors, error_file)
+  print("Some HP files couldn't be processed, take a look at ERRORS.txt in your output folder")
+}
