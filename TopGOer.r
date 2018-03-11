@@ -66,44 +66,22 @@ FullBasicTopGOAnalysis <- function(genes_list, name, map, mode = c("MF", "CC", "
   genes_query <- names(genes_list)[genes_list == 1]
   for (ont in mode){
     print(sprintf("Generating %s Results", ont))
-    results_filename <- paste(output_folder, ont, "_", name, ".txt", sep = "")
+    results_filename <- paste(output_folder, "/", ont, "_", name, ".txt", sep = "")
     TopGOobject <- new("topGOdata", ontology = ont, allGenes = genes_list, annot = annFUN.gene2GO, gene2GO = map)
     results_with_sig_genes(TopGOobject, classic, pval_thres, genes_query, results_filename)
   }
 }
 
-{orders <- commandArgs(trailingOnly = TRUE)
+orders <- commandArgs(trailingOnly = TRUE)
 
-orders <- c(orders, "NA")                          # Because I have an uneven number of arguments and...
+#orders <- c(orders, "NA")                          # Because I have an uneven number of arguments and...
 args_matrix <- matrix(orders, ncol = 2, byrow = T) # to create something similar to a dictionary
                                                    # I create this matrix of 2 columns
 # These args are mandatory
 input_file <- args_matrix[1,1]
 map_file <- args_matrix[1,2]
-output_folder <- args_matrix[length(args_matrix[,1]),1]
-
-# These args are optional
-taxid <- args_matrix[match("-taxid", args_matrix),2]
-if (is.na(taxid)){
-  taxid <- "9606"
-}
-
-mode <- args_matrix[match("-mode", args_matrix),2]
-if (is.na(mode)){
-  mode <- c("MF", "CC", "BP")
-}else{
-  mode <- unlist(strsplit(mode, ", |,|-| "))
-  }
-
-pval_thres <- args_matrix[match("-pval_thres", args_matrix),2]
-if (is.na(pval_thres)){
-  pval_thres <- 0.05
-}else{
-  pval_thres <- as.numeric(pval_thres)
-}
-
 if (substr(map_file, nchar(map_file)-3, nchar(map_file)) == ".map"){
- }else{
+}else{
   if (map_file == "gene2go:download"){
     print("Downloading Gene2Go table")
     map <- gene2go_downloader()
@@ -119,9 +97,33 @@ if (substr(map_file, nchar(map_file)-3, nchar(map_file)) == ".map"){
     print("Generating map file 2/2")
     map_file <- mapper(taxid)
     print("Map file generated")
+  }}
+gene_col <- as.integer(args_matrix[2,1])
+gene_score_col <- as.integer(args_matrix[2,2])
+gene_score <- as.integer(as.integer(args_matrix[3,1]))
+output_folder <- args_matrix[3,2]
+dir.create(path = output_folder)
+
+# These args are optional
+taxid <- args_matrix[match("-taxid", args_matrix),2]
+if (is.na(taxid)){
+  taxid <- "9606"
+}
+
+mode <- args_matrix[match("-mode", args_matrix),2]
+if (is.na(mode)){
+  mode <- c("MF", "CC", "BP")
+}else{
+  mode <- unlist(strsplit(mode, ",|-"))
   }
+
+pval_thres <- args_matrix[match("-pval_thres", args_matrix),2]
+if (is.na(pval_thres)){
+  pval_thres <- 0.05
+}else{
+  pval_thres <- as.numeric(pval_thres)
 }
-}
+
 # Rscript Enrichment/U-TopGOFullBasic.r gene_lists/ 
 # gene2go:download/gene2go/.*.map <taxid> 
 # <mode(MF-CC-BP)> <pval_thres=0.05> output
@@ -129,15 +131,13 @@ if (substr(map_file, nchar(map_file)-3, nchar(map_file)) == ".map"){
 #setwd("Desktop/Rarebiosis/")
 # USER DEFINED CONSTANTS
 # EXAMPLE
-# input_folder <- "annotated/"
-# input_file <- "annotated/annotated_HP:0025028.bed"
-# map_file <- "annotation_files/9606_geneID2GO.map"
+# input_folder <- "annotated/" || input_file <- "annotated/annotated_HP:0025028.bed"
 # gene_col <- 10
 # gene_score_col <- 5
 # gene_score <- 2
 # pval_thres <- 0.01
+# map_file <- "annotation_files/9606_geneID2GO.map"
 # output_folder <- "./"
-# mode <- c("MF", "CC", "BP")
 # mode <- c("MF", "CC", "BP")
 
 errors <- ""
