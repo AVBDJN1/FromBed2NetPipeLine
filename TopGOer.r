@@ -43,9 +43,15 @@ input_checker <- function (input){
     "%s Don't exist on your files, please check your input", input))}
 }
 
-gene_list_extractor <- function(input_file, gene_col, gene_score, gene_score_col){
+scores_gene_list_extractor <- function(input_file, gene_col, gene_score, gene_score_col){
   bed_file <- read.table(input_file, header = F, sep = "\t", quote = "")
   genes_list <- bed_file[bed_file[,gene_score_col] > gene_score, gene_col]
+  return(genes_list)
+}
+
+noscores_gene_list_extractor <- function(input_file, gene_col){
+  bed_file <- read.table(input_file, header = F, sep = "\t", quote = "")
+  genes_list <- bed_file[, gene_col]
   return(genes_list)
 }
 
@@ -80,31 +86,18 @@ args_matrix <- matrix(orders, ncol = 2, byrow = T) # to create something similar
 # These args are mandatory
 input_file <- args_matrix[1,1]
 map_file <- args_matrix[1,2]
-if (substr(map_file, nchar(map_file)-3, nchar(map_file)) == ".map"){
-}else{
-  if (map_file == "gene2go:download"){
-    print("Downloading Gene2Go table")
-    map <- gene2go_downloader()
-    print("Generating map file 1/2")
-    gene2go_tax_extrator(taxid, map)
-    print("Generating map file 2/2")
-    map <- mapper(taxid)
-    print("Map file generated")
-  }
-  if (map_file == "gene2go"){
-    print("Generating map file 1/2")
-    gene2go_tax_extrator(taxid, map_file)
-    print("Generating map file 2/2")
-    map_file <- mapper(taxid)
-    print("Map file generated")
-  }}
 gene_col <- as.integer(args_matrix[2,1])
-gene_score_col <- as.integer(args_matrix[2,2])
-gene_score <- as.integer(as.integer(args_matrix[3,1]))
-output_folder <- args_matrix[3,2]
+output_folder <- args_matrix[2,2]
 dir.create(path = output_folder)
 
 # These args are optional
+score <- args_matrix[match("-score", args_matrix),2]
+if (!is.na(score)){
+  scores <- unlist(strsplit(score, ",|-"))
+  gene_score_col <- as.integer(scores[1])
+  gene_score <- as.numeric(scores[2])
+}
+
 taxid <- args_matrix[match("-taxid", args_matrix),2]
 if (is.na(taxid)){
   taxid <- "9606"
@@ -124,19 +117,37 @@ if (is.na(pval_thres)){
   pval_thres <- as.numeric(pval_thres)
 }
 
+if (substr(map_file, nchar(map_file)-3, nchar(map_file)) == ".map"){
+}else{
+  if (map_file == "gene2go:download"){
+    print("Downloading Gene2Go table")
+    map_file <- gene2go_downloader()
+    print("Generating map file 1/2")
+    gene2go_tax_extrator(taxid, map_file)
+    print("Generating map file 2/2")
+    map_file <- mapper(taxid)
+    print("Map file generated")
+  }
+  if (map_file == "gene2go"){
+    print("Generating map file 1/2")
+    gene2go_tax_extrator(taxid, map_file)
+    print("Generating map file 2/2")
+    map_file <- mapper(taxid)
+    print("Map file generated")
+  }}
+
 # Rscript Enrichment/U-TopGOFullBasic.r gene_lists/ 
 # gene2go:download/gene2go/.*.map <taxid> 
 # <mode(MF-CC-BP)> <pval_thres=0.05> output
 
-#setwd("Desktop/Rarebiosis/")
 # USER DEFINED CONSTANTS
 # EXAMPLE
-# input_folder <- "annotated/" || input_file <- "annotated/annotated_HP:0025028.bed"
+# input_folder <- "annotated/" || input_file <- "Desktop/TeoreticalHPGenes/HP:0000089.txt"
 # gene_col <- 10
 # gene_score_col <- 5
 # gene_score <- 2
 # pval_thres <- 0.01
-# map_file <- "annotation_files/9606_geneID2GO.map"
+#map_file <- "Desktop/Rarebiosis/annotation_files/9606_geneID2GO.map"
 # output_folder <- "./"
 # mode <- c("MF", "CC", "BP")
 
@@ -152,7 +163,8 @@ classic <- new("classicCount", testStatistic = GOFisherTest, name = "Fisher_Test
 
 for (input_file in input_files){
   
-  name <- strsplit(basename(input_file), split = "[_|.]")[[1]][2]
+  name <- unlist(strsplit(basename(input_file), split = "[_|.]"))
+  name <- tail(name, n = 2)[1]
   print(sprintf("Reading %s    %i of %i", name, counter, total_files))
   counter <- counter + 1
   
@@ -161,7 +173,12 @@ for (input_file in input_files){
     errors <- paste(errors, name, "\tNO GENES\n", sep = "")
     next}
   
-  genes_list <- gene_list_extractor(input_file, gene_col, gene_score, gene_score_col)
+  if (is.na(score)){
+    genes_list <- noscores_gene_list_extractor(input_file, gene_col)    
+  } else{
+    genes_list <- scores_gene_list_extractor(input_file, gene_col, gene_score, gene_score_col)
+  }
+  
   genes_list <- factor(as.integer(gene_universe %in% genes_list))
   names(genes_list) <- gene_universe
   
