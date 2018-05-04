@@ -3,10 +3,9 @@
 # Adrian Garcia Moreno
 
 import io
-import re as re
 import os 
-import subprocess
 import sys
+import subprocess
 
 def ncbi_formatter(source):
     output = subprocess.check_output("grep ^NC "+source+"_raw.gff3 | cut -f1 | sort -u", shell=True)
@@ -62,3 +61,5 @@ def gff3_download(source):
         print "Downloaded, time to gunzip"
         os.system("gunzip -c ref_GRCh38.p7_top_level.gff3.gz > ncbi_hg20_raw.gff3")
         ncbi_formatter(source)
+
+gff3_download(sys.argv[1])
