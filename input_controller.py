@@ -4,6 +4,14 @@
 
 import sys
 import os
+import gzip
+
+def getFilename(inputFile):
+    if type(inputFile) != str:
+        inputFile = inputFile.name
+    fileName = os.path.splitext(os.path.basename(inputFile))[0]
+    extension = os.path.splitext(os.path.basename(inputFile))[1]
+    return fileName, extension
 
 def is_directory(path_str):
     if os.path.isdir(path_str):
@@ -18,10 +26,18 @@ def input_checker(infile, directory):
     else:
         return [infile]
 
+def input_format_reader(inputfile):
+    name, extension = getFilename(inputfile)
+    if extension == ".gz":
+        file_handle = gzip.open(inputfile, "rt")
+    else:
+        file_handle = open(inputfile, "r")
+    return file_handle
+
 def openFile(file_handle, skipLines = 0):
 
     if type(file_handle) == str:
-        file_handle = open(file_handle, "r")
+        file_handle = input_format_reader(file_handle)
 
     while skipLines > 0: 
         skipLines -= 1
@@ -49,16 +65,23 @@ def createOutputFile(outputFolder, inputFile, outname = "", prefix = "",
         
     return out_hndl
 
-def getFilename(inputFile):
-    if type(inputFile) != str:
-        inputFile = inputFile.name
-    fileName = os.path.splitext(os.path.basename(inputFile))[0]
-    extension = os.path.splitext(os.path.basename(inputFile))[1]
-    return fileName, extension
+def verbositier_n_timer(listofFiles, numofFiles, counter, total_elapsed_time):
+    start_time = time.time()
+    single_elapsed_time = time.time() - start_time
+    total_elapsed_time += single_elapsed_time
+    
+    single_elapsed_time = time.strftime("%H:%M:%S", time.gmtime(single_elapsed_time))
+    total_elapsed_timestr = time.strftime("%H:%M:%S", time.gmtime(total_elapsed_time))
+    
+    print("Processing {}\t{} of {} Taken {} of so far {}".format(
+    listofFiles[counter], counter+1, numofFiles, single_elapsed_time, total_elapsed_timestr))
+    
+    counter += 1
+    
+    return counter, total_elapsed_time
 
-
-
-
-
-
-
+def verbositier(listofFiles, numofFiles, counter):
+    print("Processing {}\t{} of {}".format(
+    listofFiles[counter], counter+1, numofFiles))
+    counter += 1
+    return counter
