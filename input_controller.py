@@ -5,6 +5,9 @@
 import sys
 import os
 import gzip
+import time
+import urllib.request
+import json
 
 def getFilename(inputFile):
     if type(inputFile) != str:
@@ -65,7 +68,7 @@ def createOutputFile(outputFolder, inputFile, outname = "", prefix = "",
         
     return out_hndl
 
-def verbositier_n_timer(listofFiles, numofFiles, counter, total_elapsed_time):
+def verbositier_n_timer(infile, numofFiles, counter, total_elapsed_time):
     start_time = time.time()
     single_elapsed_time = time.time() - start_time
     total_elapsed_time += single_elapsed_time
@@ -73,15 +76,36 @@ def verbositier_n_timer(listofFiles, numofFiles, counter, total_elapsed_time):
     single_elapsed_time = time.strftime("%H:%M:%S", time.gmtime(single_elapsed_time))
     total_elapsed_timestr = time.strftime("%H:%M:%S", time.gmtime(total_elapsed_time))
     
-    print("Processing {}\t{} of {} Taken {} of so far {}".format(
-    listofFiles[counter], counter+1, numofFiles, single_elapsed_time, total_elapsed_timestr))
-    
     counter += 1
+    
+    print("Processing {}\t{} of {} Taken {} of so far {}".format(
+    infile, counter, numofFiles, single_elapsed_time, total_elapsed_timestr))
+    
+    
     
     return counter, total_elapsed_time
 
-def verbositier(listofFiles, numofFiles, counter):
-    print("Processing {}\t{} of {}".format(
-    listofFiles[counter], counter+1, numofFiles))
+def verbositier(infile, numofFiles, counter):
+    
     counter += 1
+    print("Processing {}\t{} of {}".format(
+    infile, counter, numofFiles))
+    
     return counter
+
+def reporthook(count, block_size, total_size):
+    global start_time
+    if count == 0:
+        start_time = time.time()
+        return
+    duration = time.time() - start_time
+    progress_size = int(count * block_size)
+    speed = int(progress_size / (1024 * duration))
+    percent = int(count * block_size * 100 / total_size)
+    sys.stdout.write("\r...%d%%, %d MB, %d KB/s, %d seconds passed" %
+                    (percent, progress_size / (1024 * 1024), speed, duration))
+    sys.stdout.flush()
+
+def save(url, filename):
+    urllib.request.urlretrieve(url, filename, reporthook)
+    sys.stdout.write("\nDone!\n")

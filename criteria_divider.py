@@ -63,12 +63,6 @@ default = "./")
 
 args = parser.parse_args()
 
-args.infile
-args.directory
-args.skiplines
-args.delimiter
-args.cutoff
-
 outputFolder = args.outputfolder+"/" if args.outputfolder[-1] != "/" else args.outputfolder
 feature_clm = args.feature_clm - 1 if args.feature_clm != None else None
 score_clm = args.score_clm - 1 if args.score_clm != None else None
