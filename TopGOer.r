@@ -58,6 +58,10 @@ noscores_gene_list_extractor <- function(input_file, gene_col){
 results_with_sig_genes <- function(TopGOobject, classic, pval_thres, genes_query, results_filename){
   resultsclassic <- getSigGroups(TopGOobject, classic)
   tops <- length(score(resultsclassic)[score(resultsclassic) < pval_thres])
+  if (tops == 0){
+    results_table <- c(paste("No results passed the p-value cut-off of:", pval_thres, sep = " "))
+    write.table(results_table, file = results_filename, sep = "\t", quote = FALSE, row.names = F, col.names = F)
+  } else{
   results_table <- GenTable(TopGOobject, classic = resultsclassic, orderBy = "classic", ranksOf = "classic", topNodes = tops)
   genes_in_goes <- genesInTerm(TopGOobject, results_table$GO.ID)
   colnames(results_table)[6] <- "Fisher Test"
@@ -66,6 +70,7 @@ results_with_sig_genes <- function(TopGOobject, classic, pval_thres, genes_query
   results_table <- cbind(results_table, genes_of_goes)
   colnames(results_table)[7] <- "Significant Genes"
   write.table(results_table, file = results_filename, sep = "\t", quote = FALSE, row.names = F, col.names = T)
+  }
 }
 
 FullBasicTopGOAnalysis <- function(genes_list, name, map, mode = c("MF", "CC", "BP"), output_folder, classic, pval_thres){
@@ -136,16 +141,11 @@ if (substr(map_file, nchar(map_file)-3, nchar(map_file)) == ".map"){
     print("Map file generated")
   }}
 
-# Rscript Enrichment/U-TopGOFullBasic.r gene_lists/ 
-# gene2go:download/gene2go/.*.map <taxid> 
-# <mode(MF-CC-BP)> <pval_thres=0.05> output
-
 # USER DEFINED CONSTANTS
 # EXAMPLE
 # input_folder <- "annotated/" || input_file <- "Desktop/TeoreticalHPGenes/HP:0000089.txt"
 # gene_col <- 10
-# gene_score_col <- 5
-# gene_score <- 2
+# score <- 5,2 (col,cutoff)
 # pval_thres <- 0.01
 #map_file <- "Desktop/Rarebiosis/annotation_files/9606_geneID2GO.map"
 # output_folder <- "./"

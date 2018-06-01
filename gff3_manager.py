@@ -1,4 +1,4 @@
-#!bin/usr/python
+#!bin/usr/python3
 # -*- coding: utf-8 -*-.
 # Adrian Garcia Moreno
 
@@ -23,15 +23,15 @@ def consortium_regex(consortium):
     elif consortium == "gcode":
         regex = re.compile(r"\tgene\t.*gene_id=(ENSG[0-9]+)")
     
-    # more regex for any given nomenclature should be added according to
-    # to be able and extract genes and it should be an argument to the
+    # more regex for any given nomenclature should be added in order
+    # to be able to extract genes and it must be an argument to the
     # function. It will be implemented with the nomenclature identifier     
     return regex
 
 def gff3_geneExtractor(input_gff3, to_chr, consortium):
     print("Processing {}".format(input_gff3))
-    output_gff3 = "GeneIDs_{}{}".format(*getFilename(input_gff3))
-    output_gff3 = gzip.open(output_gff3, "wt")
+    output_gff3_name = "GeneIDs_{}{}".format(*getFilename(input_gff3))
+    output_gff3 = gzip.open(output_gff3_name, "wt")
     gene_line = consortium_regex(consortium)    
     input_gff3 = openFile(input_gff3)
     
@@ -52,9 +52,11 @@ def gff3_geneExtractor(input_gff3, to_chr, consortium):
                 end = line.split("\t")[4]
                 geneID = gene_line.search(line).group(1)
                 output_gff3.write("\t".join([accesion,start,end,geneID])+"\n")
-        print("Genes extracted\nYour file: {}".format(output_gff3.name))
+        print("Genes extracted\nYour file: {}".format(output_gff3_name))
+    
     input_gff3.close()
     output_gff3.close()        
+    return output_gff3_name
 
 def chr_from_accession(accession):
     # Very important
@@ -70,66 +72,73 @@ def chr_from_accession(accession):
         chro = "chr"+str(number_of_accession)
     return chro
 
-def gff3_download(gff3_source):
+def gff3_download(down_gff3):
     # https://www.gencodegenes.org/releases/(19,20).html
     # ftp://ftp.ncbi.nih.gov/genomes/Homo_sapiens/
-    if gff3_source == "gcode_hg19":
-        gff3_url = "ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_19/gencode.v19.annotation.gff3.gz"
-    elif gff3_source == "gcode_hg20":
-        gff3_url = "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_28/gencode.v28.annotation.gff3.gz"
-    elif gff3_source == "ncbi_hg19":
-        gff3_url = "ftp://ftp.ncbi.nih.gov/genomes/Homo_sapiens/GRCh37.p13_interim_annotation/interim_GRCh37.p13_top_level_2017-01-13.gff3.gz"
-    elif gff3_source == "ncbi_hg20":
-        gff3_url = "ftp://ftp.ncbi.nih.gov/genomes/Homo_sapiens/GFF/ref_GRCh38.p12_top_level.gff3.gz"
-    else: 
-        # Makes little sense this... because I force the options with argparse
-        print("Something went wrong")
+    gff3sDict = {
+    "gcode_hg19":"ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_human/release_19/gencode.v19.annotation.gff3.gz",
+    "gcode_hg20":"ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_28/gencode.v28.annotation.gff3.gz",
+    "ncbi_hg19":"ftp://ftp.ncbi.nih.gov/genomes/Homo_sapiens/GRCh37.p13_interim_annotation/interim_GRCh37.p13_top_level_2017-01-13.gff3.gz",
+    "ncbi_hg20":"ftp://ftp.ncbi.nih.gov/genomes/Homo_sapiens/GFF/ref_GRCh38.p12_top_level.gff3.gz"}
 
-    print("Downloading {} GFF3 from\n{}".format(gff3_source, gff3_url))
-    gff3_donwloaded = "{}{}".format(*getFilename(gff3_url))
-    save(gff3_url, gff3_donwloaded)
-    
-    print("Downloaded {}:\n\t{}".format(gff3_source, gff3_donwloaded))
+    print("Downloading {} GFF3 from\n{}".format(down_gff3, gff3sDict[down_gff3]))
+    gff3_donwloaded = "{}{}".format(*getFilename(gff3sDict[down_gff3]))
+    save(gff3sDict[down_gff3], gff3_donwloaded)
+    print("Downloaded {}:\n\t{}".format(down_gff3, gff3_donwloaded))
     return(gff3_donwloaded)
 
-parser = argparse.ArgumentParser(  
-    prog = 'GFF3 Manager',
-    prefix_chars = '-',
-    formatter_class = argparse.ArgumentDefaultsHelpFormatter,
-    description = '''To download gff3 files and extract genes (GeneID by 
-    now) and if the gff3 comes from ncbi you can transform the accesion 
-    numbers (only NC_xxxxx.x) to chromosomes location nomenclature
-    specifying with its flag.''')
+def gff3_manager(down_gff3, to_chr, input_gff3, consortium):
+    if down_gff3 is not None:
+        consortium = down_gff3.split("_")[0]
+        input_gff3 = gff3_download(down_gff3)
+        output = gff3_geneExtractor(input_gff3, to_chr, consortium)
+    
+    else:
+        output = gff3_geneExtractor(input_gff3, to_chr, consortium)
+    
+    return output
 
-input_group = parser.add_mutually_exclusive_group(required=True)
+# ~ def argparser():
+    # ~ parser = argparse.ArgumentParser(  
+        # ~ prog = 'GFF3 Manager',
+        # ~ prefix_chars = '-',
+        # ~ formatter_class = argparse.ArgumentDefaultsHelpFormatter,
+        # ~ description = '''To download gff3 files and extract genes (GeneID by 
+        # ~ now) and if the gff3 comes from ncbi you can transform the accesion 
+        # ~ numbers (only NC_xxxxx.x) to chromosomes location nomenclature
+        # ~ specifying with its flag. The original file downloaded and the one
+        # ~ transformed will be saved in the same folder from which you have 
+        # ~ called this script.''')
+    
+    # ~ input_group = parser.add_mutually_exclusive_group(required=True)
+    
+    # ~ input_group.add_argument('-gff3','--input_gff3', 
+    # ~ help='GFF3 file as input', nargs='?')
+    
+    # ~ parser.add_argument('-consortium','--consortium', 
+    # ~ help='If an gff3 file is directly given as input, you must specify the\
+    # ~ consortium which it comes from', choices=["ncbi","gcode"])
+    
+    # ~ input_group.add_argument('-down_gff3','--down_gff3', 
+    # ~ help='GFF3 source url (Warning both from ncbi might need to be \
+    # ~ transformed from accession to chr if that is tour case.\
+    # ~ Genecode here given is already in chr location base \
+    # ~ (Shall I  do an opposite transformation from chr to accesion?)', nargs='?', 
+    # ~ choices=['gcode_hg19','ncbi_hg19', 'gcode_hg20','ncbi_hg20'])
+    
+    # ~ parser.add_argument('-to_chr','--to_chr', 
+    # ~ help='Flag to transform RefSeq NC_xxx.x to chromosome', 
+    # ~ action="store_true")
+    
+    # ~ args = parser.parse_args()
+    # ~ return args
 
-input_group.add_argument('-gff3','--input_gff3', 
-help='GFF3 file as input', nargs='?')
+# ~ args = argparser()
+# ~ down_gff3 = args.down_gff3 
+# ~ to_chr = args.to_chr 
+# ~ input_gff3 = args.input_gff3 
+# ~ consortium = args.consortium
 
-parser.add_argument('-consortium','--consortium', 
-help='If an gff3 file is directly given as input, you must specify the\
-consortium which it comes from', choices=["ncbi","gcode"])
-
-input_group.add_argument('-down_gff3','--gff3_source', 
-help='GFF3 source url (Warning both from ncbi might need to be \
-transformed from accession to chr if that is tour case.\
-Genecode here given is already in chr location base \
-(Shall I  do an opposite transformation from chr to accesion?)', nargs='?', 
-choices=['gcode_hg19','ncbi_hg19', 'gcode_hg20','ncbi_hg20'])
-
-parser.add_argument('-to_chr','--to_chr', 
-help='Flag to transform RefSeq NC_xxx.x to chromosome', 
-action="store_true")
-
-args = parser.parse_args()
-
-if args.gff3_source is not None:
-    consortium = args.gff3_source.split("_")[0]
-    input_gff3 = gff3_download(args.gff3_source)
-    gff3_geneExtractor(input_gff3, args.to_chr, consortium)
-
-else:
-    gff3_geneExtractor(args.input_gff3, args.to_chr, args.consortium)
-
+# ~ gff3_manager(down_gff3, to_chr, input_gff3, consortium)
 # Although it is not the case, I must improve this to not extract 
 # something from the GFF3

@@ -49,13 +49,21 @@ def openFile(file_handle, skipLines = 0):
     # that offers the csv-like format and return the file_handle there
     return file_handle
 
+def getuniquefolders(files, levels):
+    uniquefolders = set()
+    for folder in files:
+        for level in range(levels):
+            folder = os.path.dirname(folder)
+        uniquefolders.update([folder+"/"])
+    return uniquefolders
+
 def createOutputFile(outputFolder, inputFile, outname = "", prefix = "", 
                    subfolders = False, writingMode = "w"):
     
     filename, extension = getFilename(inputFile)
     
     if subfolders:
-        os.makedirs(outputFolder+filename, exist_ok=True)
+        os.makedirs(outputFolder+filename, exist_ok=True)        
         output = "{}{}/{}{}{}".format(outputFolder,filename,prefix,outname,extension)
         out_hndl = open(output, writingMode)
         
@@ -80,8 +88,6 @@ def verbositier_n_timer(infile, numofFiles, counter, total_elapsed_time):
     
     print("Processing {}\t{} of {} Taken {} of so far {}".format(
     infile, counter, numofFiles, single_elapsed_time, total_elapsed_timestr))
-    
-    
     
     return counter, total_elapsed_time
 
