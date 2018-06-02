@@ -5,9 +5,10 @@
 import argparse
 import subprocess
 import sys
+import os
 
 def topGOer(inp, mapfile, genCol, outputfolder, gen_col_cutoff, taxid, 
-            mode, GOcutoff, rscript_path):
+            mode, GOcutoff, rscript_path, multiprocess = False):
     if gen_col_cutoff is None:
         gen_col_cutoff = ""
     else:
@@ -24,7 +25,8 @@ def topGOer(inp, mapfile, genCol, outputfolder, gen_col_cutoff, taxid,
         GOcutoff = ""
     else:
         GOcutoff = "-pval_thres {}".format(GOcutoff)
-        
+     
+    os.makedirs(outputfolder, exist_ok=True)        
     RscriptCommand = "Rscript {}TopGOer.r {} {} {} {} {} {} {} {}".format(
     rscript_path, inp, mapfile, genCol, outputfolder, gen_col_cutoff, 
     taxid, mode, GOcutoff)
@@ -32,8 +34,6 @@ def topGOer(inp, mapfile, genCol, outputfolder, gen_col_cutoff, taxid,
     
     subprocess.run(RscriptCommand, shell=True, 
     stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    
-    return()
 
 # ~ def argparser():
     # ~ parser = argparse.ArgumentParser(  

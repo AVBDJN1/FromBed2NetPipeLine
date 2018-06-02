@@ -27,7 +27,7 @@ def tabloider(go_result_table, summary_warning = ""):
     go_result_table_htmlizer = "{}{}</table>".format(go_result_table_htmlizer, summary_warning)
     return go_result_table_htmlizer
     
-def urlizer(full_text, input_folder_or_file, GOus_dict):
+def urlizer(full_text, input_folder_or_file, GOus_dict, feature_name):
     regions_urlbase = '<a href= "https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&position={}%3A{}-{}" target=new>{}</a>'#.format(chro,start,end, region)
     HP_urlbase = '<h1><a href= "http://www.human-phenotype-ontology.org/hpoweb?id={}" target=new>{}</a></h1>'#.format(HP, HP)
     GO_urlbase = '<a href= "http://amigo.geneontology.org/amigo/term/{}" target=new>{}</a>'#.format(GOID, GOID)
@@ -36,9 +36,9 @@ def urlizer(full_text, input_folder_or_file, GOus_dict):
     caption_base = '<table>\n<caption>{} {} <a href=..{} target=new>TogGO GRAPH</a></caption>\n'#.format(full_graph, lines[line], full_path_name)
     sig_genes_base = '<a href=..{} target=new>{}</a>'
     
-    regions_match = re.compile(r"^chr.+")
-    GeneID_match = re.compile(r"^(\d+)")
-    caption_match = re.compile(r"^###+.*")
+    regions_match = re.compile(r"^chr.+") # r"^(chr\S*)"
+    GeneID_match = re.compile(r"^(\d+)") # r"(\d+)"
+    #caption_match = re.compile(r"^###+.*")
     HP_match = re.compile(r"(HP:[0-9]+)")
     GOID_match = re.compile(r"(GO:[0-9]+).*")
     
@@ -110,7 +110,7 @@ for input_summedup in input_files:
     GOus_dict = {}
     GOID_match = re.compile(r"(GO:[0-9]+).*")
     if len(parts) > 1 and parts[-2][0] == "#":
-        
+        '''
         GOus = GOID_match.findall(parts[-4])
         if len(GOus) == 0:
             summary_warning = "No GO.ID passed the summary threshold, you can still check the results of the TopGO GRAPH"
@@ -119,7 +119,7 @@ for input_summedup in input_files:
         GO_category = parts[-4][3]
         GOus_dict[GO_category] = re.sub(":", "%3A", " ".join(GOus))
         parts[-4] = tabloider(parts[-4], summary_warning)
-
+        '''
         GOus = GOID_match.findall(parts[-3])
         if len(GOus) == 0:
             summary_warning = "No GO.ID passed the summary threshold, you can still check the results of the TopGO GRAPH"
@@ -140,7 +140,7 @@ for input_summedup in input_files:
 
     full_text = "\n\n".join(parts)
     #print GOus_dict
-    full_text = urlizer(full_text, path, GOus_dict)
+    full_text = urlizer(full_text, path, GOus_dict, feature_name)
     
     HTML_heading = "<!DOCTYPE html>\n<html>\n<head>\n<title>{}</title>\
                     \n<style>\ntable, th, td {{border:1px solid black; border-collapse:\

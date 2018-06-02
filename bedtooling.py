@@ -21,7 +21,7 @@ def annotation(bed_file, annotation_file, output_folder):
 
 def bedtooling(outputfolder, infile, directory, annotationfile):
  
-    output_folder = "{}bedtools_annot/".format(outputfolder)
+    output_folder = "{}/".format(outputfolder)
     os.makedirs(output_folder, exist_ok=True)
     bed_files = input_checker(infile, directory)
 
