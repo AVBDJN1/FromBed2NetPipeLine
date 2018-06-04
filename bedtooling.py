@@ -36,38 +36,38 @@ def bedtooling(outputfolder, infile, directory, annotationfile):
         outputs.update([outfile])
     return outputs
 
-# ~ def argparser():
-    # ~ parser = argparse.ArgumentParser(  
-        # ~ prog='Bedtooling',
-        # ~ prefix_chars='-',
-        # ~ formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-        # ~ description='''A wrapper of bedtools intersect conserving
-        # ~ all the information of both files. Please be sure that you
-        # ~ hve bedtools installed on your computer.''',
-        # ~ )
+def argparser():
+    parser = argparse.ArgumentParser(  
+        prog='Bedtooling',
+        prefix_chars='-',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        description='''A wrapper of bedtools intersect conserving
+        all the information of both files. Please be sure that you
+        hve bedtools installed on your computer.''',
+        )
     
-    # ~ input_group = parser.add_mutually_exclusive_group(required=True)
+    input_group = parser.add_mutually_exclusive_group(required=True)
     
-    # ~ input_group.add_argument('-f','--infile', 
-    # ~ help='Bed file/s as input', nargs='?', type=open)
+    input_group.add_argument('-f','--infile', 
+    help='Bed file/s as input', nargs='?')
     
-    # ~ input_group.add_argument('-d','--directory', 
-    # ~ help='Directory/ies with all and only your query bed files', nargs='?',
-    # ~ type=is_directory)
+    input_group.add_argument('-d','--directory', 
+    help='Directory/ies with all and only your query bed files', nargs='?',
+    type=is_directory)
     
-    # ~ parser.add_argument('-annot','--annotationfile', 
-    # ~ help='Annotation file/s [i.e. gff3] from where to obtain the extract\
-    # ~ the desired information', nargs='?')
+    parser.add_argument('-annot','--annotationfile', 
+    help='Annotation file/s [i.e. gff3] from where to obtain the extract\
+    the desired information', nargs='?')
     
-    # ~ parser.add_argument('-o','--outputfolder', 
-    # ~ help='The name of the folder where your results will be dumped', nargs='?')
+    parser.add_argument('-o','--outputfolder', 
+    help='The name of the folder where your results will be dumped', nargs='?')
     
-    # ~ args = parser.parse_args()
-    # ~ return args
+    args = parser.parse_args()
+    return args
 
-# ~ args = argparser()
-# ~ outputfolder = args.outputfolder 
-# ~ infile = args.infile 
-# ~ directory = args.directory 
-# ~ annotationfile = args.annotationfile    
-# ~ bedtooling(outputfolder, infile, directory, annotationfile)
+args = argparser()
+outputfolder = args.outputfolder 
+infile = args.infile 
+directory = args.directory 
+annotationfile = args.annotationfile    
+bedtooling(outputfolder, infile, directory, annotationfile)

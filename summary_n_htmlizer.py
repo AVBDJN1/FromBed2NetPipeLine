@@ -192,56 +192,56 @@ def summary_n_htmlizer(GOanalysis_folder, onts, GOcutoff, annotpath,
     print("Features without name {}:\n{}".format(len(feature_name_errors),
     "\n".join(feature_name_errors)))
 
-# ~ def argparser():         
-    # ~ parser = argparse.ArgumentParser(  
-        # ~ prog = 'Summary and HTMLizer',
-        # ~ prefix_chars = '-',
-        # ~ formatter_class = argparse.ArgumentDefaultsHelpFormatter,
-        # ~ description = '''This summs up, by default in a html file, unless
-        # ~ plain text is desired, the results of the pipeline''')
+def argparser():         
+    parser = argparse.ArgumentParser(  
+        prog = 'Summary and HTMLizer',
+        prefix_chars = '-',
+        formatter_class = argparse.ArgumentDefaultsHelpFormatter,
+        description = '''This summs up, by default in a html file, unless
+        plain text is desired, the results of the pipeline''')
     
-    # ~ parser.add_argument('-annot','--annotFold', 
-    # ~ help='The folder with the annotated bed files', nargs='?')
+    parser.add_argument('-annot','--annotFold', 
+    help='The folder with the annotated bed files', nargs='?')
     
-    # ~ parser.add_argument('-GO','--GOResFold', 
-    # ~ help='The folder with the GO annalysis resulting files', nargs='?')
+    parser.add_argument('-GO','--GOResFold', 
+    help='The folder with the GO annalysis resulting files', nargs='?')
     
-    # ~ parser.add_argument('-LOCcut','--locusCutoff', nargs='?',
-    # ~ help='Determine the minimun valor of the chromosomic regions to filter \
-    # ~ the results ((values: between) - default: %(default)s)', type=float, default=0.0)
+    parser.add_argument('-LOCcut','--locusCutoff', nargs='?',
+    help='Determine the minimun valor of the chromosomic regions to filter \
+    the results ((values: between) - default: %(default)s)', type=float, default=0.0)
     
-    # ~ parser.add_argument('-GOcut','--GOcutoff', nargs='?',
-    # ~ help='Determine the minimun valor of the GO p-value to filter the\
-     # ~ results ((values: between) - default: %(default)s)', default=0.05, type=float)
+    parser.add_argument('-GOcut','--GOcutoff', nargs='?',
+    help='Determine the minimun valor of the GO p-value to filter the\
+     results ((values: between) - default: %(default)s)', default=0.05, type=float)
     
-    # ~ parser.add_argument('-onts','--ontologies', 
-    # ~ help='Ontologies that you want to summup separated by "," (comma)\
-    # ~ [BP,CC,MF]', nargs='?', default = ['BP', 'CC', 'MF'], choices=['CC,BP', 
-    # ~ 'BP,CC','MF,BP','BP,MF','CC,MF','MF,CC','BP','CC', 'MF'])
+    parser.add_argument('-onts','--ontologies', 
+    help='Ontologies that you want to summup separated by "," (comma)\
+    [BP,CC,MF]', nargs='*', default = ['BP', 'CC', 'MF'], choices=['CC,BP', 
+    'BP,CC','MF,BP','BP,MF','CC,MF','MF,CC','BP','CC', 'MF'])
     
-    # ~ parser.add_argument('-Fnames','--Feature_names', 
-    # ~ help='JSON file with the data organised as "Feature_ID":"Feature_name"\
-    # ~ if none is provided the feature_name will be not included', nargs='?')
+    parser.add_argument('-Fnames','--Feature_names', 
+    help='JSON file with the data organised as "Feature_ID":"Feature_name"\
+    if none is provided the feature_name will be not included', nargs='?')
     
-    # ~ parser.add_argument('-o','--outputfolder', 
-    # ~ help='The name of the folder where your summary files will be dumped', nargs='?')
+    parser.add_argument('-o','--outputfolder', 
+    help='The name of the folder where your summary files will be dumped', nargs='?')
     
-    # ~ parser.add_argument('-to_txt','--to_plaintxt', 
-    # ~ help='Flag to left the summary in plain text instead of HTML', 
-    # ~ action="store_true")
+    parser.add_argument('-to_txt','--to_plaintxt', 
+    help='Flag to left the summary in plain text instead of HTML', 
+    action="store_true")
     
-    # ~ args = parser.parse_args()
-    # ~ return args
+    args = parser.parse_args()
+    return args
 
-# ~ args = argparser()
+args = argparser()
 
-# ~ GOResFold = args.GOResFold
-# ~ onts = args.ontologies.split(",")
-# ~ GOcutoff = args.GOcutoff
-# ~ annotFold = args.annotFold
-# ~ locusCutoff = args.locusCutoff
-# ~ outputFolder = args.outputfolder
-# ~ Feature_names = args.Feature_names
-# ~ to_plaintxt = args.to_plaintxt
+GOResFold = args.GOResFold
+onts = args.ontologies
+GOcutoff = args.GOcutoff
+annotFold = args.annotFold
+locusCutoff = args.locusCutoff
+outputFolder = args.outputfolder
+Feature_names = args.Feature_names
+to_plaintxt = args.to_plaintxt
 
-# ~ summary_n_htmlizer(GOanalysis_folder, onts, GOcutoff, annotpath, locusCutoff, outputFolder, Feature_names, to_plaintxt)
+summary_n_htmlizer(GOResFold, onts, GOcutoff, annotFold, locusCutoff, outputFolder, Feature_names, to_plaintxt)

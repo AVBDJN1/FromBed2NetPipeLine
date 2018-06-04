@@ -121,6 +121,10 @@ parser.add_argument('-GOcut','--GOcutoff', nargs='?',
 help='Determine the minimun valor of the GO p-value to filter the \
 results', default = '0.05')
 
+parser.add_argument('-multi','--multiprocess', nargs='?',
+help='Flag to launch the different enrichment analysis in parallel', 
+action="store_true")
+
 ### Summ n HTML
 parser.add_argument('-SGOcut','--SGOcutoff', nargs='?',
 help='Determine the minimun valor of the p-value to filter the \
@@ -169,6 +173,7 @@ score_col_cutoff = args.score_col_cutoff
 taxid = args.taxid
 mode = args.mode
 GOcutoff = args.GOcutoff
+multiprocess = args.multiprocess
 # Summ n HTML
 onts = mode.split(",")
 SGOcut = args.SGOcutoff
@@ -199,7 +204,8 @@ GOouts = set()
 for folder in bedouts:
     outputfolder = outputter(subfolders, folder, "GOresults")
     GOouts.update([outputfolder])
-    topGOer(folder, mapfile, genCol, outputfolder, score_col_cutoff, taxid, mode, GOcutoff, "")
+    topGOer(inp, mapfile, genCol, outputfolder, gen_col_cutoff, taxid, mode,
+            GOcutoff, rscript_path, multiprocess)
 for folder in GOouts:
     GOResFold = outputter(subfolders, folder, "GOresults")
     annotFold = outputter(subfolders, folder, "bedtooled")

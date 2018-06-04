@@ -98,47 +98,47 @@ def gff3_manager(down_gff3, to_chr, input_gff3, consortium):
     
     return output
 
-# ~ def argparser():
-    # ~ parser = argparse.ArgumentParser(  
-        # ~ prog = 'GFF3 Manager',
-        # ~ prefix_chars = '-',
-        # ~ formatter_class = argparse.ArgumentDefaultsHelpFormatter,
-        # ~ description = '''To download gff3 files and extract genes (GeneID by 
-        # ~ now) and if the gff3 comes from ncbi you can transform the accesion 
-        # ~ numbers (only NC_xxxxx.x) to chromosomes location nomenclature
-        # ~ specifying with its flag. The original file downloaded and the one
-        # ~ transformed will be saved in the same folder from which you have 
-        # ~ called this script.''')
+def argparser():
+    parser = argparse.ArgumentParser(  
+        prog = 'GFF3 Manager',
+        prefix_chars = '-',
+        formatter_class = argparse.ArgumentDefaultsHelpFormatter,
+        description = '''To download gff3 files and extract genes (GeneID by 
+        now) and if the gff3 comes from ncbi you can transform the accesion 
+        numbers (only NC_xxxxx.x) to chromosomes location nomenclature
+        specifying with its flag. The original file downloaded and the one
+        transformed will be saved in the same folder from which you have 
+        called this script.''')
     
-    # ~ input_group = parser.add_mutually_exclusive_group(required=True)
+    input_group = parser.add_mutually_exclusive_group(required=True)
     
-    # ~ input_group.add_argument('-gff3','--input_gff3', 
-    # ~ help='GFF3 file as input', nargs='?')
+    input_group.add_argument('-gff3','--input_gff3', 
+    help='GFF3 file as input', nargs='?')
     
-    # ~ parser.add_argument('-consortium','--consortium', 
-    # ~ help='If an gff3 file is directly given as input, you must specify the\
-    # ~ consortium which it comes from', choices=["ncbi","gcode"])
+    parser.add_argument('-consortium','--consortium', 
+    help='If an gff3 file is directly given as input, you must specify the\
+    consortium which it comes from', choices=["ncbi","gcode"])
     
-    # ~ input_group.add_argument('-down_gff3','--down_gff3', 
-    # ~ help='GFF3 source url (Warning both from ncbi might need to be \
-    # ~ transformed from accession to chr if that is tour case.\
-    # ~ Genecode here given is already in chr location base \
-    # ~ (Shall I  do an opposite transformation from chr to accesion?)', nargs='?', 
-    # ~ choices=['gcode_hg19','ncbi_hg19', 'gcode_hg20','ncbi_hg20'])
+    input_group.add_argument('-down_gff3','--down_gff3', 
+    help='GFF3 source url (Warning both from ncbi might need to be \
+    transformed from accession to chr if that is tour case.\
+    Genecode here given is already in chr location base \
+    (Shall I  do an opposite transformation from chr to accesion?)', nargs='?', 
+    choices=['gcode_hg19','ncbi_hg19', 'gcode_hg20','ncbi_hg20'])
     
-    # ~ parser.add_argument('-to_chr','--to_chr', 
-    # ~ help='Flag to transform RefSeq NC_xxx.x to chromosome', 
-    # ~ action="store_true")
+    parser.add_argument('-to_chr','--to_chr', 
+    help='Flag to transform RefSeq NC_xxx.x to chromosome', 
+    action="store_true")
     
-    # ~ args = parser.parse_args()
-    # ~ return args
+    args = parser.parse_args()
+    return args
 
-# ~ args = argparser()
-# ~ down_gff3 = args.down_gff3 
-# ~ to_chr = args.to_chr 
-# ~ input_gff3 = args.input_gff3 
-# ~ consortium = args.consortium
+args = argparser()
+down_gff3 = args.down_gff3 
+to_chr = args.to_chr 
+input_gff3 = args.input_gff3 
+consortium = args.consortium
 
-# ~ gff3_manager(down_gff3, to_chr, input_gff3, consortium)
+gff3_manager(down_gff3, to_chr, input_gff3, consortium)
 # Although it is not the case, I must improve this to not extract 
 # something from the GFF3
