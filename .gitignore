@@ -8,5 +8,5 @@
 *.RData
 *.Rhistory
 *.ipynb
-
+.DS_Store
 
